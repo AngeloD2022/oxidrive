@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "assgrave"
+name = "assgrave_cli"
 version = "0.1.0"
