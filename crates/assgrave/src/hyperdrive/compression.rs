@@ -1,18 +1,19 @@
-
 // reverse engineered from HDPIM.dylib @ UnzipHandler::unzipFile
 
+use lzma_sdk_sys::{
+    Allocator, Byte, CLzma2Dec, ELzmaFinishMode, ELzmaStatus, Lzma2Dec_AllocateProbs,
+    Lzma2Dec_DecodeToDic, Lzma2Dec_Init, SRes, SZ_OK, SizeT,
+};
 use std::mem::MaybeUninit;
-use lzma_sdk_sys::{Allocator, CLzma2Dec, Lzma2Dec_AllocateProbs, Lzma2Dec_Init, SZ_OK};
-
 
 pub struct HyperdriveLZMA2 {
     dec: CLzma2Dec,
     alloc: Allocator,
+    current_prop: u8,
 }
 
 impl HyperdriveLZMA2 {
-
-    pub fn new() -> Result<Self, i32>{
+    pub fn new() -> Result<Self, i32> {
         unsafe {
             let prop: u8 = 0x18;
             let alloc = Allocator::default();
@@ -27,11 +28,90 @@ impl HyperdriveLZMA2 {
             }
 
             Lzma2Dec_Init(&mut dec);
-            Ok(Self { dec, alloc })
+            Ok(Self {
+                dec,
+                alloc,
+                current_prop: prop,
+            })
         }
     }
-    
-    pub fn decompress() {
-        todo!();
+
+    fn reallocate_probs(&mut self, prop: u8) -> Result<(), i32> {
+        unsafe {
+            let res = Lzma2Dec_AllocateProbs(&mut self.dec, prop, self.alloc.as_ref());
+            if res != SZ_OK as i32 {
+                return Err(res);
+            }
+        }
+        self.current_prop = prop;
+        Ok(())
+    }
+
+    pub fn decompress(&mut self, item: &[u8], lim_value: u64) -> Result<Vec<u8>, ()> {
+        // if the prop value is different, reallocate our internal dictionary.
+        let prop = item[0];
+        if prop != self.current_prop {
+            self.reallocate_probs(prop).unwrap();
+        }
+
+        const BLOCK_SIZE: u64 = 0x10000;
+        let dict_limit = lim_value + BLOCK_SIZE;
+
+        let mut dict = vec![0u8; dict_limit as usize];
+        let mut result: Vec<u8> = Vec::new();
+
+        self.dec.decoder.dic = dict.as_mut_ptr();
+        self.dec.decoder.dicBufSize = dict_limit as SizeT;
+        self.dec.decoder.dicPos = 0;
+
+        unsafe {
+            for chunk in item[1..].chunks(BLOCK_SIZE as usize) {
+                let mut src_chunk_size = chunk.len();
+                let mut status = ELzmaStatus::LZMA_STATUS_NOT_SPECIFIED;
+
+                let dict_size_pre = self.dec.decoder.dicBufSize;
+
+                let res = Lzma2Dec_DecodeToDic(
+                    &mut self.dec,
+                    dict_limit as SizeT,
+                    chunk.as_ptr() as *const Byte,
+                    &mut src_chunk_size,
+                    ELzmaFinishMode::LZMA_FINISH_END,
+                    &mut status,
+                );
+
+                if res != SZ_OK as i32 {
+                    let dict_size_post = self.dec.decoder.dicBufSize;
+
+                    if !((status != ELzmaStatus::LZMA_STATUS_MAYBE_FINISHED_WITHOUT_MARK
+                        || dict_size_post == self.dec.decoder.buf.addr())
+                        && (src_chunk_size > 0 || dict_size_pre != dict_size_post))
+                    {
+                        return Err(());
+                    }
+                }
+            }
+        }
+
+        let decompressed = self.dec.decoder.dicPos;
+        result.extend(&dict[..decompressed]);
+
+        Ok(result)
+    }
+}
+
+
+mod tests {
+    use std::fs;
+    use super::*;
+
+    #[test]
+    fn hyperdrive_lzma2() {
+        let file = fs::read("/Users/angelodeluca/Downloads/Install PHSP_26.10-en_US-macuniversal.app/Contents/Resources/products/PHSP/ext/1/CustomHook/mac/PSCustomHook").unwrap();
+
+        let mut hd = HyperdriveLZMA2::new().unwrap();
+        let fsize = 5_000_000;
+        let result = hd.decompress(&file, fsize).unwrap();
+        println!("something");
     }
 }
