@@ -1,7 +1,8 @@
 [package]
-name = "assgrave_cli"
+name = "assgrave"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-assgrave = {path="../assgrave"}
+lzma-sdk-sys = "0.1.1+24.09"
+zip = "5.1.1"

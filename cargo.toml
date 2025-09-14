@@ -1,4 +1,5 @@
 [workspace]
-members = [
+members = [ 
+    "crates/assgrave",
     "crates/assgrave_cli"
 ]
