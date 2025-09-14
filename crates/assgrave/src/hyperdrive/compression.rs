@@ -2,7 +2,7 @@
 // reverse engineered from HDPIM.dylib @ UnzipHandler::unzipFile
 
 use std::mem::MaybeUninit;
-use lzma_sdk_sys::{Allocator, CLzma2Dec, Lzma2Dec_Allocate, Lzma2Dec_AllocateProbs, Lzma2Dec_Init, SZ_OK};
+use lzma_sdk_sys::{Allocator, CLzma2Dec, Lzma2Dec_AllocateProbs, Lzma2Dec_Init, SZ_OK};
 
 
 pub struct HyperdriveLZMA2 {
@@ -29,5 +29,9 @@ impl HyperdriveLZMA2 {
             Lzma2Dec_Init(&mut dec);
             Ok(Self { dec, alloc })
         }
+    }
+    
+    pub fn decompress() {
+        todo!();
     }
 }
