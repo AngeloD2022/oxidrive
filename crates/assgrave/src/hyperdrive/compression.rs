@@ -27,7 +27,6 @@ impl HyperdriveLZMA2 {
                 return Err(res);
             }
 
-            Lzma2Dec_Init(&mut dec);
             Ok(Self {
                 dec,
                 alloc,
@@ -63,6 +62,8 @@ impl HyperdriveLZMA2 {
         self.dec.decoder.dic = dict.as_mut_ptr();
         self.dec.decoder.dicBufSize = dict_limit as SizeT;
         self.dec.decoder.dicPos = 0;
+
+        unsafe { Lzma2Dec_Init(&mut self.dec) };
 
         unsafe {
             for chunk in item[1..].chunks(BLOCK_SIZE as usize) {
@@ -107,11 +108,14 @@ mod tests {
 
     #[test]
     fn hyperdrive_lzma2() {
-        let file = fs::read("/Users/angelodeluca/Downloads/Install PHSP_26.10-en_US-macuniversal.app/Contents/Resources/products/PHSP/ext/1/CustomHook/mac/PSCustomHook").unwrap();
+        let file1 = fs::read("/Users/angelodeluca/Downloads/Install PHSP_26.10-en_US-macuniversal.app/Contents/Resources/products/PHSP/ext/AdobePhotoshop26-Core.pimx").unwrap();
+        let file2 = fs::read("/Users/angelodeluca/Downloads/Install PHSP_26.10-en_US-macuniversal.app/Contents/Resources/products/PHSP/ext/1/Common Files/Adobe/HelpCfg/en_US/Photoshop_21.0.helpcfg").unwrap();
 
         let mut hd = HyperdriveLZMA2::new().unwrap();
         let fsize = 5_000_000;
-        let result = hd.decompress(&file, fsize).unwrap();
-        println!("something");
+        let result2 = hd.decompress(&file2, fsize).unwrap();
+        let result1 = hd.decompress(&file1, fsize).unwrap();
+        println!("{}", String::from_utf8(result1).unwrap());
+        println!("{}", String::from_utf8(result2).unwrap());
     }
 }
