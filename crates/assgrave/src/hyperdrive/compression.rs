@@ -2,7 +2,7 @@
 
 use lzma_sdk_sys::{
     Allocator, Byte, CLzma2Dec, ELzmaFinishMode, ELzmaStatus, Lzma2Dec_AllocateProbs,
-    Lzma2Dec_DecodeToDic, Lzma2Dec_Init, SRes, SZ_OK, SizeT,
+    Lzma2Dec_DecodeToDic, Lzma2Dec_Init, SZ_OK, SizeT,
 };
 use std::mem::MaybeUninit;
 
@@ -101,10 +101,9 @@ impl HyperdriveLZMA2 {
     }
 }
 
-
 mod tests {
-    use std::fs;
     use super::*;
+    use std::fs;
 
     #[test]
     fn hyperdrive_lzma2() {
@@ -113,8 +112,8 @@ mod tests {
 
         let mut hd = HyperdriveLZMA2::new().unwrap();
         let fsize = 5_000_000;
-        let result2 = hd.decompress(&file2, fsize).unwrap();
         let result1 = hd.decompress(&file1, fsize).unwrap();
+        let result2 = hd.decompress(&file2, fsize).unwrap();
         println!("{}", String::from_utf8(result1).unwrap());
         println!("{}", String::from_utf8(result2).unwrap());
     }

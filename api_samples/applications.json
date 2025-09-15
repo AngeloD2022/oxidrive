@@ -1,0 +1,1006 @@
+{
+  "Name": "After Effects",
+  "SAPCode": "AEFT",
+  "CodexVersion": "25.4",
+  "AssetGuid": "1ae6edb7-d4f9-493f-82f4-2e998c557a5c",
+  "ProductVersion": "25.4.0.086",
+  "BaseVersion": "25.0",
+  "LbsUrl": "/AdobeProducts/AEFT/25_4/macuniversal/AAMmetadataLS20/",
+  "Platform": "macuniversal",
+  "SupportedLanguages": {
+    "Language": [
+      {
+        "value": "",
+        "locale": "en_US"
+      },
+      {
+        "value": "",
+        "locale": "en_GB"
+      },
+      {
+        "value": "",
+        "locale": "en_AE"
+      },
+      {
+        "value": "",
+        "locale": "en_IL"
+      },
+      {
+        "value": "",
+        "locale": "de_DE"
+      },
+      {
+        "value": "",
+        "locale": "es_ES"
+      },
+      {
+        "value": "",
+        "locale": "es_MX"
+      },
+      {
+        "value": "",
+        "locale": "fr_FR"
+      },
+      {
+        "value": "",
+        "locale": "fr_CA"
+      },
+      {
+        "value": "",
+        "locale": "fr_MA"
+      },
+      {
+        "value": "",
+        "locale": "it_IT"
+      },
+      {
+        "value": "",
+        "locale": "ja_JP"
+      },
+      {
+        "value": "",
+        "locale": "ko_KR"
+      },
+      {
+        "value": "",
+        "locale": "zh_CN"
+      },
+      {
+        "value": "",
+        "locale": "pt_BR"
+      },
+      {
+        "value": "",
+        "locale": "ru_RU"
+      }
+    ]
+  },
+  "LanguageSet": "LS20",
+  "ConflictingProcesses": {
+    "ConflictingProcess": [
+      {
+        "RegularExpression": "^[Aa][Ff][Tt][Ee][Rr] [Ee][Ff][Ff][Ee][Cc][Tt][Ss]$",
+        "ProcessDisplayName": "Adobe After Effects 2025",
+        "Reason": "might lose work or rendering",
+        "ParentRegularExpression": "",
+        "ParentDisplayName": "",
+        "RelativePath": "[InstallDir]/Adobe After Effects 2025.app/Contents/MacOS/After Effects",
+        "headless": false,
+        "forceKillAllowed": false,
+        "adobeOwned": true
+      },
+      {
+        "RegularExpression": "^[Aa][Ee][Rr][Ee][Nn][Dd][Ee][Rr]$",
+        "ProcessDisplayName": "aerender",
+        "Reason": "",
+        "ParentRegularExpression": "^[Aa][Ff][Tt][Ee][Rr] [Ee][Ff][Ff][Ee][Cc][Tt][Ss]$",
+        "ParentDisplayName": "Adobe After Effects 2025",
+        "RelativePath": "[InstallDir]/aerender",
+        "headless": true,
+        "forceKillAllowed": true,
+        "adobeOwned": true
+      },
+      {
+        "RegularExpression": "^[Cc][Ii][Nn][Ee][Ww][Aa][Rr][Ee]$",
+        "ProcessDisplayName": "Cineware",
+        "Reason": "",
+        "ParentRegularExpression": "^[Aa][Ff][Tt][Ee][Rr] [Ee][Ff][Ff][Ee][Cc][Tt][Ss]$",
+        "ParentDisplayName": "Adobe After Effects 2025",
+        "RelativePath": "[AdobeProgramFiles]/Maxon Cinema 4D R25/Cineware.app/Contents/MacOS/Cineware",
+        "headless": false,
+        "forceKillAllowed": false,
+        "adobeOwned": false
+      },
+      {
+        "RegularExpression": "^[Cc]4[Dd][Pp][Yy]$",
+        "ProcessDisplayName": "c4dpy",
+        "Reason": "",
+        "ParentRegularExpression": "^[Aa][Ff][Tt][Ee][Rr] [Ee][Ff][Ff][Ee][Cc][Tt][Ss]$",
+        "ParentDisplayName": "Adobe After Effects 2025",
+        "RelativePath": "[AdobeProgramFiles]/Maxon Cinema 4D R25/c4dpy.app/Contents/MacOS/c4dpy",
+        "headless": false,
+        "forceKillAllowed": false,
+        "adobeOwned": false
+      },
+      {
+        "RegularExpression": "^[Cc][Oo][Mm][Mm][Aa][Nn][Dd][Ll][Ii][Nn][Ee]$",
+        "ProcessDisplayName": "Commandline",
+        "Reason": "",
+        "ParentRegularExpression": "^[Aa][Ff][Tt][Ee][Rr] [Ee][Ff][Ff][Ee][Cc][Tt][Ss]$",
+        "ParentDisplayName": "Adobe After Effects 2025",
+        "RelativePath": "[AdobeProgramFiles]/Maxon Cinema 4D R25/Commandline.app/Contents/MacOS/Commandline",
+        "headless": false,
+        "forceKillAllowed": false,
+        "adobeOwned": false
+      },
+      {
+        "RegularExpression": "^[Aa][Dd][Oo][Bb][Ee][Cc][Rr][Dd][Aa][Ee][Mm][Oo][Nn]$",
+        "ProcessDisplayName": "AdobeCRDaemon",
+        "Reason": "Dependent process",
+        "ParentRegularExpression": "^[Aa][Ff][Tt][Ee][Rr] [Ee][Ff][Ff][Ee][Cc][Tt][Ss]$",
+        "ParentDisplayName": "Adobe After Effects 2025",
+        "RelativePath": "[INSTALLDIR]/Adobe After Effects 2025.app/Contents/Frameworks/AdobeCrashReporter.framework/Versions/A/AdobeCRDaemon.app/Contents/MacOS/AdobeCRDaemon",
+        "headless": true,
+        "forceKillAllowed": true,
+        "adobeOwned": true
+      },
+      {
+        "RegularExpression": "^[Cc][Ii][Nn][Ee][Mm][Aa] 4[Dd] [Tt][Ee][Aa][Mm] [Rr][Ee][Nn][Dd][Ee][Rr] [Cc][Ll][Ii][Ee][Nn][Tt]$",
+        "ProcessDisplayName": "Cinema 4D Team Render Client",
+        "Reason": "",
+        "ParentRegularExpression": "^[Aa][Ff][Tt][Ee][Rr] [Ee][Ff][Ff][Ee][Cc][Tt][Ss]$",
+        "ParentDisplayName": "Adobe After Effects 2025",
+        "RelativePath": "[AdobeProgramFiles]/Maxon Cinema 4D R25/Cinema 4D Team Render Client.app/Contents/MacOS/Cinema 4D Team Render Client",
+        "headless": false,
+        "forceKillAllowed": false,
+        "adobeOwned": false
+      },
+      {
+        "RegularExpression": "^[[Cc][Ii][Nn][Ee][Mm][Aa] 4[Dd] [Tt][Ee][Aa][Mm] [Rr][Ee][Nn][Dd][Ee][Rr] [Ss][Ee][Rr][Vv][Ee][Rr]$",
+        "ProcessDisplayName": "Cinema 4D Team Render Server",
+        "Reason": "",
+        "ParentRegularExpression": "^[Aa][Ff][Tt][Ee][Rr] [Ee][Ff][Ff][Ee][Cc][Tt][Ss]$",
+        "ParentDisplayName": "Adobe After Effects 2025",
+        "RelativePath": "[AdobeProgramFiles]/Maxon Cinema 4D R25/Cinema 4D Team Render Server.app/Contents/MacOS/Cinema 4D Team Render Server",
+        "headless": false,
+        "forceKillAllowed": false,
+        "adobeOwned": false
+      },
+      {
+        "RegularExpression": "^[Cc][Ii][Nn][Ee][Mm][Aa] 4[Dd]$",
+        "ProcessDisplayName": "Cinema 4D",
+        "Reason": "",
+        "ParentRegularExpression": "^[Aa][Ff][Tt][Ee][Rr] [Ee][Ff][Ff][Ee][Cc][Tt][Ss]$",
+        "ParentDisplayName": "Adobe After Effects 2025",
+        "RelativePath": "[AdobeProgramFiles]/Maxon Cinema 4D R25/Cinema 4D.app/Contents/MacOS/Cinema 4D",
+        "headless": false,
+        "forceKillAllowed": false,
+        "adobeOwned": false
+      }
+    ]
+  },
+  "AMTConfig": {
+    "path": "[AdobeCommon]/After Effects/25.0/AMT/application.xml",
+    "LEID": "V7{}AfterEffects-250-Mac-GM",
+    "appID": "{AEFT-25.4-32-ADBEADBEADBEADBEADBEADB}"
+  },
+  "Packages": {
+    "Package": [
+      {
+        "Type": "core",
+        "PackageName": "AdobeAfterEffects25AllTrial_stripped",
+        "PackageVersion": "25.4.0.086",
+        "DownloadSize": 1596505426,
+        "ExtractSize": 5207937448,
+        "Path": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/AdobeAfterEffects25AllTrial_stripped.zip",
+        "Features": {
+          "Feature": []
+        },
+        "Format": "zip",
+        "ValidationURL": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117303",
+        "packageHashKey": "b37643495f1d2c4c5b898ba1331a5d029bbb658b8fb6a4e6ce2b4e91eac5bde9",
+        "DeltaPackages": [
+          {
+            "SchemaVersion": "1.0.102",
+            "PackageName": "AdobeAfterEffects25AllTrial_stripped_delta_25_3_2_002",
+            "Path": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/delta/AdobeAfterEffects25AllTrial_stripped_delta_25_3_2_002.zip",
+            "BasePackageVersion": "25.3.2.002",
+            "ValidationURL": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/31606?type=delta",
+            "DownloadSize": 403840968,
+            "ExtractSize": 917232153,
+            "MetadataFilePath": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/delta/AdobeAfterEffects25AllTrial_stripped_delta_25_3_2_002_diff.json"
+          },
+          {
+            "SchemaVersion": "1.0.102",
+            "PackageName": "AdobeAfterEffects25AllTrial_stripped_delta_25_3_1_003",
+            "Path": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/delta/AdobeAfterEffects25AllTrial_stripped_delta_25_3_1_003.zip",
+            "BasePackageVersion": "25.3.1.003",
+            "ValidationURL": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/31607?type=delta",
+            "DownloadSize": 403847030,
+            "ExtractSize": 917238254,
+            "MetadataFilePath": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/delta/AdobeAfterEffects25AllTrial_stripped_delta_25_3_1_003_diff.json"
+          }
+        ],
+        "ValidationURLs": {
+          "TYPE2": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117303?algorithm=TYPE2",
+          "TYPE1": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117303?algorithm=TYPE1"
+        },
+        "Condition": "[OSArchitecture]==x64",
+        "ProcessorFamily": "64-bit",
+        "InstallSequenceNumber": 1001,
+        "fullPackageName": "AdobeAfterEffects25AllTrial_stripped.zip",
+        "PackageValidation": "ddsy1j78X+9FTR4sC7FmcsfbqLvEt3gcJm6NMSIeuUjxPTnfPz9r+tXJa5v1XkDLmvogSXv6xWE4G5nfo7U96uxTDyrPT+I+QSCPnXhkyErIBbSR5JUM13t5VpIORzSlNvWOJ+CMW4VsMIiVMy4Jwv+AT67cmMRy9zJQHTl8xfrjSaUjO1VKeGjfcYziEdEoc8/GWu7w0ljsplFJAap7fZgeoLTu7CD55eDPGQpfX+EtObftDdCsz9nnuHMnCbh45SHesK+2k4ufs7diqT8LgxyVH7T/jBWZ2/rgtl2zfICRidRqWdGlqttQDDYC/TqXTCE8cNEtWo6jWptcvu2tLp06zg9kh3EIrH13ppGcvNKqgBkSru+Le6LgddVv7UTm4A4AZthK4mSq8nhXRIZRCogCLo2laWM2xHR9EBJzeSu4Px6deSYqq63UEAjHyCHZ7Lix0N5XH4QpSu+kk9PFS8hE/DQ/usjpGG0c/XOjUNVJ9kNaavbq0hn+gLs2huIV",
+        "AliasPackageName": "1",
+        "PackageScheme": "hd-standard"
+      },
+      {
+        "Type": "core",
+        "PackageName": "AdobeAfterEffects25AllTrial_stripped_arm",
+        "PackageVersion": "25.4.0.086",
+        "DownloadSize": 1537662268,
+        "ExtractSize": 5032503352,
+        "Path": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/AdobeAfterEffects25AllTrial_stripped_arm.zip",
+        "Features": {
+          "Feature": []
+        },
+        "Format": "zip",
+        "ValidationURL": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117304",
+        "packageHashKey": "78158254fd4b96dec8dd38ab89806aabc7881549f770d5dab12cf15c933eb4bf",
+        "DeltaPackages": [
+          {
+            "SchemaVersion": "1.0.102",
+            "PackageName": "AdobeAfterEffects25AllTrial_stripped_arm_delta_25_3_1_003",
+            "Path": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/delta/AdobeAfterEffects25AllTrial_stripped_arm_delta_25_3_1_003.zip",
+            "BasePackageVersion": "25.3.1.003",
+            "ValidationURL": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/31609?type=delta",
+            "DownloadSize": 375847202,
+            "ExtractSize": 850270988,
+            "MetadataFilePath": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/delta/AdobeAfterEffects25AllTrial_stripped_arm_delta_25_3_1_003_diff.json"
+          },
+          {
+            "SchemaVersion": "1.0.102",
+            "PackageName": "AdobeAfterEffects25AllTrial_stripped_arm_delta_25_3_2_002",
+            "Path": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/delta/AdobeAfterEffects25AllTrial_stripped_arm_delta_25_3_2_002.zip",
+            "BasePackageVersion": "25.3.2.002",
+            "ValidationURL": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/31608?type=delta",
+            "DownloadSize": 375833235,
+            "ExtractSize": 850257169,
+            "MetadataFilePath": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/delta/AdobeAfterEffects25AllTrial_stripped_arm_delta_25_3_2_002_diff.json"
+          }
+        ],
+        "ValidationURLs": {
+          "TYPE2": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117304?algorithm=TYPE2",
+          "TYPE1": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117304?algorithm=TYPE1"
+        },
+        "Condition": "[OSArchitecture]==arm64",
+        "ProcessorFamily": "64-bit",
+        "InstallSequenceNumber": 1002,
+        "fullPackageName": "AdobeAfterEffects25AllTrial_stripped_arm.zip",
+        "PackageValidation": "zqDN3g4BNya5p/plCVy9pLQdmrMy9VJpFlo3/dTJMmQRbjWY2xOl+5ob28PeM8RgV7F3E4InXXVsADqjtW68RbcDv7OS+u25rRCob+VkpfyV/7nuOxPxiH3qh083NzOWb6eF0+80AEDbBxAx9Lbc+O7dXm6+Dg9CP/yEdkpbG5cSusSO7SYYrVOAXmox/TQnmVa+Afp4OktYcxbqUAVk0uLp5Nxe5WMwZIFq+YGchCvbkjlQ82a7kPV8cBx72lSTvjPRbwUAKYTq+3ao4tdqB+EVZW1A1QdD6BoPSfAUNGD7IifUSwBKo6UHdDU550ZlWPFolyUF6f6pgds3aPqzYPWDsFAdnmbVzpPgja9FBjf5uNz7uzD9u3dtTw7mew5T/iPtaXrhzqA88MY721gXQXdCcla26kSCqlwtsov/KaT8jkUB9Ws+cXR9trQTqMsrL/XGDh+/3Duo768bqUt4yRa6kqcVsvVPPdYXWKa9pmFOSB9whOOO7Yyh4hgL5Dnn",
+        "AliasPackageName": "2",
+        "PackageScheme": "hd-standard"
+      },
+      {
+        "Type": "non-core",
+        "PackageName": "AdobeAfterEffects25AllTrial_maxon-osx-x86_64",
+        "PackageVersion": "25.4.0.086",
+        "DownloadSize": 860977500,
+        "ExtractSize": 874718090,
+        "Path": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/AdobeAfterEffects25AllTrial_maxon-osx-x86_64.zip",
+        "Features": {
+          "Feature": []
+        },
+        "Format": "zip",
+        "ValidationURL": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117305",
+        "packageHashKey": "450b1c8c20eb0f779d4c315ae6701b68d68948323e6db551949fbfb2badf4985",
+        "DeltaPackages": [],
+        "ValidationURLs": {
+          "TYPE2": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117305?algorithm=TYPE2",
+          "TYPE1": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117305?algorithm=TYPE1"
+        },
+        "Condition": "[OSArchitecture]==x64",
+        "InstallSequenceNumber": 7001,
+        "fullPackageName": "AdobeAfterEffects25AllTrial_maxon-osx-x86_64.zip",
+        "PackageValidation": "vl5tNW4G/Yt5Y/AgWUbhv3Pd/IWZzmIK82hCAvJ7n1pTXru7pMuwdJEf6D952Hq49SPI07wbsbGCun+sNWa1h0A47G9G5qLvrYrVx3hRlxPxVVYP80Xur0GApyplX6EUkRF9ZPJLVIOeamqIuWYlMtr1bXPoo5SfLYQQhSPC77SOv5KQMu+8AP4kQEuDGQ9Ze+RkkK+7K4Ep28NuvnIB54CHyYoXKU8236pbunMEqxi4tqiHTVKW27ay+qUaXL9uRq/3lAzmK9PCaOvQpCd+bplLQpfCCZeB7tzyXSYblAHbBJxnXFt5fEwQe3KzjeQSN0inByHPn81fF1o5yxdbIAJgR9znfGdTcuMhZGT+QgoTMCvBBodL35k1cgXQZI8HfJn3Mh16WebJ5vGS5SIQtfW/F5fOrL/gxj4bXaXkmRg2DipZuvT5r1wv/gdPa+gxrzDx+IdCWvHctXw1RwmsjWSBeqoKBs72dBdRdvK8ZWKD4q3bTdYCjz0gf/Fh7H51",
+        "AliasPackageName": "3",
+        "PackageScheme": "hd-standard"
+      },
+      {
+        "Type": "non-core",
+        "PackageName": "AdobeAfterEffects25AllTrial_maxon-osx-arm64",
+        "PackageVersion": "25.4.0.086",
+        "DownloadSize": 860977447,
+        "ExtractSize": 874718089,
+        "Path": "/AdobeProducts/AEFT/25.4.0.086/macuniversal/1ae6edb7-d4f9-493f-82f4-2e998c557a5c/AdobeAfterEffects25AllTrial_maxon-osx-arm64.zip",
+        "Features": {
+          "Feature": []
+        },
+        "Format": "zip",
+        "ValidationURL": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117306",
+        "packageHashKey": "54e3a7a986b16b6073f165e940bdba15d99d2eadf03bc742de6b604303593e44",
+        "DeltaPackages": [],
+        "ValidationURLs": {
+          "TYPE2": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117306?algorithm=TYPE2",
+          "TYPE1": "https://cdn-ffc.oobesaas.adobe.com/core/v2/validation/117306?algorithm=TYPE1"
+        },
+        "Condition": "[OSArchitecture]==arm64",
+        "InstallSequenceNumber": 7002,
+        "fullPackageName": "AdobeAfterEffects25AllTrial_maxon-osx-arm64.zip",
+        "PackageValidation": "euUCbt6sCsTo0gr3i9GyxcKp2PG79otlO4aPuupkMe7wXhw4pCeybJd1gfc9rXDoa0SLBvjYA034Zw7/t8Wyje3EUANBVPlXA628K3xxhEhQ2xXRyS/hSbY63V6IOuw3pvSg9mvINxfu82k97C1qp0tRn3hY+YN9p0AGy9kMHkn9LhM0AUCQup/HhJAe8LhH6F/Py7gswQx7PzirrBxz+6imvsRd/UpovFv6YK1NKo1NswldGcsjyjvlqPn5g3amTdFrZTHzcdTlbfogmmU95DLWTr+UIIEJjCepp5J/mAlVhrJdY7a0UHt88amZFqhptVJHQpfbW2nI47DHcvP6XWj4dMuKoYAKZGfvFvLxvBIYyl3pvRSCivVPrWeR7GglislpNCMM52Ah2E2Vyd2qUcU9gK12PEn7FuKq/poSUV0TXQguSrLAN3uZmPqnYnS+2alwC/sbPteTeecQzds0jWecDc6Ani3xyj6Fs3RKhjlAu61BSpW6zaAOI7bPbLMu",
+        "AliasPackageName": "4",
+        "PackageScheme": "hd-standard"
+      }
+    ]
+  },
+  "Modules": {
+    "Module": [
+      {
+        "Id": "AEFT-maxon",
+        "DisplayName": "Cinema 4D by Maxon",
+        "DeploymentType": "Deferred",
+        "RequiresUserConsent": true,
+        "ReferencePackages": {
+          "ReferencePackage": [
+            "AdobeAfterEffects25AllTrial_maxon-osx-x86_64",
+            "AdobeAfterEffects25AllTrial_maxon-osx-arm64"
+          ]
+        }
+      }
+    ]
+  },
+  "Dependencies": {
+    "Dependency": [
+      {
+        "SAPCode": "COMP",
+        "BaseVersion": "1.0"
+      },
+      {
+        "SAPCode": "CORG",
+        "BaseVersion": "1.0"
+      },
+      {
+        "SAPCode": "ACR",
+        "BaseVersion": "9.6"
+      },
+      {
+        "SAPCode": "CCXP",
+        "BaseVersion": "2.2.1"
+      }
+    ]
+  },
+  "SystemRequirement": {
+    "SupportedOsVersionRange": [
+      {
+        "min": "12.0.0"
+      }
+    ],
+    "ExternalUrl": {
+      "Stage": {
+        "Language": [
+          {
+            "value": "https://helpx.stage.adobe.com/after-effects/system-requirements.html",
+            "locale": "mul"
+          }
+        ]
+      },
+      "Prod": {
+        "Language": [
+          {
+            "value": "https://helpx.adobe.com/after-effects/system-requirements.html",
+            "locale": "mul"
+          }
+        ]
+      }
+    },
+    "CheckCompatibility": {
+      "Content": "var winChecks={minOSVersion:\"10.0.0.19045\",osArchitecture:\"64\",excludedOSVersions:[],includedOSVersions:[\"10.0.0.14393\",\"10.0.0.17763\",\"10.0.0.19044\"]};var macChecks={minOSVersion:\"12.0.0\"};var localizationStringMap={cs_CZ:{OperatingSystemWin:\"Windows 10 verze 22H2 nebo novější\",OperatingSystemMac:\"macOS 12 nebo novější\",InstructionSet:\"Je vyžadován procesor s podporou Advanced Vector Extensions 2 (AVX2)\"},da_DK:{OperatingSystemWin:\"Windows 10 version 22H2 eller nyere\",OperatingSystemMac:\"macOS 12 eller nyere\",InstructionSet:\"Processor med avancerede vektorudvidelser (AVX2) kræver support\"},de_DE:{OperatingSystemWin:\"Windows 10 Version 22H2 oder höher\",OperatingSystemMac:\"macOS 12 oder höher\",InstructionSet:\"Prozessor mit Unterstützung für Advanced Vector Extensions 2 (AVX2) erforderlich\"},en_US:{OperatingSystemWin:\"Windows 10 Version 22H2 or later\",OperatingSystemMac:\"macOS 12 or later\",InstructionSet:\"Processor with Advanced Vector Extensions 2 (AVX2) support required\"},es_ES:{OperatingSystemWin:\"Windows 10 versión 22H2 o posterior\",OperatingSystemMac:\"macOS 12 o posterior\",InstructionSet:\"Se necesita procesador compatible con AVX2 (Advanced Vector Extensions 2)\"},es_MX:{OperatingSystemWin:\"Windows 10 versión 22H2 o posterior\",OperatingSystemMac:\"macOS 12 o posterior\",InstructionSet:\"Se necesita procesador compatible con AVX2 (Advanced Vector Extensions 2)\"},fr_FR:{OperatingSystemWin:\"Windows 10 version 22H2 ou ultérieure\",OperatingSystemMac:\"macOS 12 ou version ultérieure\",InstructionSet:\"Processeur avec prise en charge d’Advanced Vector Extensions 2 (AVX2) obligatoire\"},fi_FI:{OperatingSystemWin:\"Windows 10 versio 22H2 tai uudempi\",OperatingSystemMac:\"macOS 12 tai uudempi\",InstructionSet:\"Edellyttää, että suoritin tukee Advanced Vector Extensions 2 (AVX2) -laajennoksia\"},fr_CA:{OperatingSystemWin:\"Windows 10 version 22H2 ou ultérieure\",OperatingSystemMac:\"macOS 12 ou version ultérieure\",InstructionSet:\"Processeur avec prise en charge d’Advanced Vector Extensions 2 (AVX2) obligatoire\"},it_IT:{OperatingSystemWin:\"Windows 10 versione 22H2 o successiva\",OperatingSystemMac:\"macOS 12 o versione successiva\",InstructionSet:\"È richiesto un processore che supporti Advanced Vector Extensions 2 (AVX2)\"},ja_JP:{OperatingSystemWin:\"Windows 10 バージョン 22H2 以降\",OperatingSystemMac:\"macOS 12 以降\",InstructionSet:\"Advanced Vector Extensions 2（AVX2）対応のプロセッサーが必要\"},ko_KR:{OperatingSystemWin:\"Windows 10 버전 22H2 이상\",OperatingSystemMac:\"macOS 12 이상\",InstructionSet:\"AVX2(고급 벡터 확장 2)를 지원하는 프로세서 필요\"},nb_NO:{OperatingSystemWin:\"Windows 10 versjon 22H2 eller nyere\",OperatingSystemMac:\"macOS 12 eller nyere\",InstructionSet:\"En processor med støtte for Advanced Vector Extensions 2 (AVX2) er påkrevd\"},nl_NL:{OperatingSystemWin:\"Windows 10 versie 22H2 of later\",OperatingSystemMac:\"macOS 12 of later\",InstructionSet:\"Processor met Advanced Vector Extensions 2 (AVX2) -ondersteuning vereist\"},pl_PL:{OperatingSystemWin:\"System Windows 10 wersja 22H2 lub nowsza\",OperatingSystemMac:\"System macOS 12 lub nowszy\",InstructionSet:\"Wymagany procesor z obsługą Advanced Vector Extensions 2 (AVX2)\"},pt_BR:{OperatingSystemWin:\"Windows 10 versão 22H2 ou posterior\",OperatingSystemMac:\"macOS 12 ou posterior\",InstructionSet:\"É preciso suporte parar processador com Extensões de vetor avançadas 2 (AVX2)\"},ru_RU:{OperatingSystemWin:\"Windows 10 версия 22H2 или более поздняя\",OperatingSystemMac:\"macOS 12 или более поздняя\",InstructionSet:\"Требуется процессор, поддерживающий инструкции Advanced Vector Extensions 2 (AVX2)\"},sv_SE:{OperatingSystemWin:\"Windows 10 version 22H2 eller senare\",OperatingSystemMac:\"macOS 12 eller senare\",InstructionSet:\"Processor med stöd för AVX2 (Advanced Vector Extensions 2) krävs\"},tr_TR:{OperatingSystemWin:\"Windows 10 sürüm 22H2 veya üzeri\",OperatingSystemMac:\"macOS 12 veya üzeri\",InstructionSet:\"Advanced Vector Extensions 2 (AVX2) işlemcili destek gerektirir\"},zh_CN:{OperatingSystemWin:\"Windows 10 版本 22H2 或更高版本\",OperatingSystemMac:\"macOS 12 或更高版本\",InstructionSet:\"需要支持高级矢量扩展 2 (AVX2) 的处理器\"},zh_TW:{OperatingSystemWin:\"Windows 10 版本 22H2 或更新版本\",OperatingSystemMac:\"macOS 12 或更新版本\",InstructionSet:\"需要具備進階向量擴充指令集 2 (AVX2) 支援的處理器\"}};var locale=\"en_US\";function getLocalizedString(a,f,d){var c;try{c=localizationStringMap[locale][a]}catch(b){c=\"undefined\"}if(f){c=c.replace(\"{0}\",f)}if(d){c=c.replace(\"{1}\",d)}return c}function compareVersion(f,d){if(f===d){return 0}var j=f.split(\".\");var e=d.split(\".\");var c=Math.max(j.length,e.length);for(var h=0;h<c;h++){var k=0;var g=0;if(h<j.length){k=parseInt(j[h])}if(h<e.length){g=parseInt(e[h])}if(k>g){return 1}if(k<g){return -1}}return 0}function getYearFromDate(a){var b=a.split(\"/\");if(b.length>=3){return parseInt(b[2])}var b=a.split(\"\\\\\");if(b.length>=3){return parseInt(b[2])}return 0}function arrayContains(a,d){var c=a.length;for(var b=0;b<c;b++){if(a[b]===d){return true}}return false}function checkCompatibility(h,g){var o={};o.checkResult=\"success\";o.failingList=[];var b,m;try{b=JSON.parse(h);m=JSON.parse(g)}catch(j){o.failingList.push({type:\"generic\",message:\"Error parsing JSON\"});return JSON.stringify(o)}var a=b.context;locale=b.locale;if(!locale||!localizationStringMap[locale]){locale=\"en_US\"}var c;var i=m.os;if(i&&i.type&&i.type.indexOf(\"win\")!=-1){c=winChecks;var f=i.version+\".\"+i.buildNumber;var n=i.architecture;var d=false;var k=false;d=arrayContains(winChecks.excludedOSVersions,f);k=arrayContains(winChecks.includedOSVersions,f);if((f&&compareVersion(f,winChecks.minOSVersion)<0)||(f&&d)||(n&&n!==winChecks.osArchitecture)){if(!k){o.failingList.push({type:\"OS\",message:getLocalizedString(\"OperatingSystemWin\")});o.checkResult=\"fail\"}}}if(i&&i.type&&i.type.indexOf(\"mac\")!=-1){c=macChecks;var f=i.version;if(f&&compareVersion(f,macChecks.minOSVersion)<0){o.failingList.push({type:\"OS\",message:getLocalizedString(\"OperatingSystemMac\")});o.checkResult=\"fail\"}}var l=m.processor[\"instructionSet\"];if(l){if(typeof l===\"string\"){l=JSON.parse(l)}if(!arrayContains(l,\"HW_AVX2\")){o.failingList.push({type:\"Instruction Set\",message:getLocalizedString(\"InstructionSet\")});o.checkResult=\"fail\"}}return JSON.stringify(o)};"
+    }
+  },
+  "version": "25.4",
+  "NglLicensingInfo": {
+    "AppId": "AfterEffects1",
+    "AppVersion": "25.4",
+    "LibVersion": "1.40",
+    "BuildId": "AEFT_25.4.0.086_macuniversal_LS20",
+    "ImsClientId": "ngl_after_effects1"
+  },
+  "AppLineage": "After Effects",
+  "FamilyName": "After Effects",
+  "BuildGuid": "063ad0f3-5d2d-4163-b60b-2c2be65b580a",
+  "selfServeBuild": true,
+  "HDBuilderVersion": "5.0.27",
+  "IsSTI": false,
+  "DeltaUpdateConfig": {
+    "Enabled": true
+  },
+  "AppsPanelFullAppUpdateConfig": {
+    "PreviousVersionRange": {
+      "min": "12.0"
+    },
+    "ShowDialogBox": true,
+    "ImportPreferenceCheckBox": {
+      "DefaultValue": true,
+      "Show": true,
+      "AllowToggle": true
+    },
+    "RemovePreviousVersionCheckBox": {
+      "DefaultValue": false,
+      "Show": true,
+      "AllowToggle": true
+    }
+  },
+  "Cdn": {
+    "Secure": "https://ccmdls.adobe.com",
+    "NonSecure": "http://ccmdl.adobe.com"
+  },
+  "ReferenceProducts": {
+    "ReferenceProduct": [
+      {
+        "SAPCode": "AME",
+        "BaseVersion": "25.0",
+        "sequence": "POST"
+      }
+    ]
+  },
+  "WhatsNewUrl": {
+    "Stage": {
+      "Language": [
+        {
+          "value": "https://helpx.stage.adobe.com/after-effects/using/whats-new.html",
+          "locale": "mul"
+        }
+      ]
+    },
+    "Prod": {
+      "Language": [
+        {
+          "value": "https://helpx.adobe.com/after-effects/using/whats-new.html",
+          "locale": "mul"
+        }
+      ]
+    }
+  },
+  "TutorialUrl": {
+    "Stage": {
+      "Language": [
+        {
+          "value": "https://helpx.stage.adobe.com/after-effects/tutorials.html",
+          "locale": "en_US"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/after-effects/tutorials.html",
+          "locale": "en_GB"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/after-effects/tutorials.html",
+          "locale": "en_AE"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/after-effects/tutorials.html",
+          "locale": "en_IL"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/es/after-effects/tutorials.html",
+          "locale": "es_ES"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/es/after-effects/tutorials.html",
+          "locale": "es_MX"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/de/after-effects/tutorials.html",
+          "locale": "de_DE"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/fr/after-effects/tutorials.html",
+          "locale": "fr_FR"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/fr/after-effects/tutorials.html",
+          "locale": "fr_CA"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/fr/after-effects/tutorials.html",
+          "locale": "fr_MA"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/it/after-effects/tutorials.html",
+          "locale": "it_IT"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/jp/after-effects/tutorials.html",
+          "locale": "ja_JP"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/kr/after-effects/tutorials.html",
+          "locale": "ko_KR"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/br/after-effects/tutorials.html",
+          "locale": "pt_BR"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/ru/after-effects/tutorials.html",
+          "locale": "ru_RU"
+        },
+        {
+          "value": "https://helpx.stage.adobe.com/cn/after-effects/tutorials.html",
+          "locale": "zh_CN"
+        }
+      ]
+    },
+    "Prod": {
+      "Language": [
+        {
+          "value": "https://helpx.adobe.com/after-effects/tutorials.html",
+          "locale": "en_US"
+        },
+        {
+          "value": "https://helpx.adobe.com/after-effects/tutorials.html",
+          "locale": "en_GB"
+        },
+        {
+          "value": "https://helpx.adobe.com/after-effects/tutorials.html",
+          "locale": "en_AE"
+        },
+        {
+          "value": "https://helpx.adobe.com/after-effects/tutorials.html",
+          "locale": "en_IL"
+        },
+        {
+          "value": "https://helpx.adobe.com/es/after-effects/tutorials.html",
+          "locale": "es_ES"
+        },
+        {
+          "value": "https://helpx.adobe.com/es/after-effects/tutorials.html",
+          "locale": "es_MX"
+        },
+        {
+          "value": "https://helpx.adobe.com/de/after-effects/tutorials.html",
+          "locale": "de_DE"
+        },
+        {
+          "value": "https://helpx.adobe.com/fr/after-effects/tutorials.html",
+          "locale": "fr_FR"
+        },
+        {
+          "value": "https://helpx.adobe.com/fr/after-effects/tutorials.html",
+          "locale": "fr_CA"
+        },
+        {
+          "value": "https://helpx.adobe.com/fr/after-effects/tutorials.html",
+          "locale": "fr_MA"
+        },
+        {
+          "value": "https://helpx.adobe.com/it/after-effects/tutorials.html",
+          "locale": "it_IT"
+        },
+        {
+          "value": "https://helpx.adobe.com/jp/after-effects/tutorials.html",
+          "locale": "ja_JP"
+        },
+        {
+          "value": "https://helpx.adobe.com/kr/after-effects/tutorials.html",
+          "locale": "ko_KR"
+        },
+        {
+          "value": "https://helpx.adobe.com/br/after-effects/tutorials.html",
+          "locale": "pt_BR"
+        },
+        {
+          "value": "https://helpx.adobe.com/ru/after-effects/tutorials.html",
+          "locale": "ru_RU"
+        },
+        {
+          "value": "https://helpx.adobe.com/cn/after-effects/tutorials.html",
+          "locale": "zh_CN"
+        }
+      ]
+    }
+  },
+  "AppLaunch": "[INSTALLDIR]/Adobe After Effects 2025.app/Contents/MacOS/After Effects",
+  "InstallDir": {
+    "value": "[AdobeProgramFiles]/Adobe After Effects 2025",
+    "maxPath": "Plug-ins/Effects/mochaAE/MochaAE.bundle/Contents/MacOS/mochaui/Mocha AE.app/Contents/Resources/qml/QtQuick/Controls/Universal/impl/libqtquickcontrols2universalstyleimplplugin.dylib"
+  },
+  "MoreInfoUrl": {
+    "Stage": {
+      "Language": [
+        {
+          "value": "https://www.stage.adobe.com/products/aftereffects.html",
+          "locale": "mul"
+        }
+      ]
+    },
+    "Prod": {
+      "Language": [
+        {
+          "value": "https://www.adobe.com/products/aftereffects.html",
+          "locale": "mul"
+        }
+      ]
+    }
+  },
+  "AddRemoveInfo": {
+    "DisplayName": {
+      "Language": [
+        {
+          "value": "Odinstalovat Adobe After Effects 2025",
+          "locale": "cs_CZ"
+        },
+        {
+          "value": "Afinstaller Adobe After Effects 2025",
+          "locale": "da_DK"
+        },
+        {
+          "value": "Adobe After Effects 2025 deinstallieren",
+          "locale": "de_DE"
+        },
+        {
+          "value": "Uninstall Adobe After Effects 2025",
+          "locale": "en_AE"
+        },
+        {
+          "value": "Uninstall Adobe After Effects 2025",
+          "locale": "en_GB"
+        },
+        {
+          "value": "Uninstall Adobe After Effects 2025",
+          "locale": "en_IL"
+        },
+        {
+          "value": "Uninstall Adobe After Effects 2025",
+          "locale": "en_US"
+        },
+        {
+          "value": "Desinstalar Adobe After Effects 2025",
+          "locale": "es_ES"
+        },
+        {
+          "value": "Desinstalar Adobe After Effects 2025",
+          "locale": "es_MX"
+        },
+        {
+          "value": "Poista Adobe After Effects 2025",
+          "locale": "fi_FI"
+        },
+        {
+          "value": "Désinstaller Adobe After Effects 2025",
+          "locale": "fr_CA"
+        },
+        {
+          "value": "Désinstaller Adobe After Effects 2025",
+          "locale": "fr_FR"
+        },
+        {
+          "value": "Désinstaller Adobe After Effects 2025",
+          "locale": "fr_MA"
+        },
+        {
+          "value": "Az Adobe After Effects 2025 eltávolítása",
+          "locale": "hu_HU"
+        },
+        {
+          "value": "Disinstalla Adobe After Effects 2025",
+          "locale": "it_IT"
+        },
+        {
+          "value": "Adobe After Effects 2025 をアンインストール ",
+          "locale": "ja_JP"
+        },
+        {
+          "value": "Adobe After Effects 2025 제거 ",
+          "locale": "ko_KR"
+        },
+        {
+          "value": "Avinstaller Adobe After Effects 2025",
+          "locale": "nb_NO"
+        },
+        {
+          "value": "Adobe After Effects 2025 verwijderen",
+          "locale": "nl_NL"
+        },
+        {
+          "value": "Odinstalowanie programu Adobe After Effects 2025",
+          "locale": "pl_PL"
+        },
+        {
+          "value": "Desinstalar o Adobe After Effects 2025",
+          "locale": "pt_BR"
+        },
+        {
+          "value": "Dezinstalare Adobe After Effects 2025",
+          "locale": "ro_RO"
+        },
+        {
+          "value": "Удалить Adobe After Effects 2025",
+          "locale": "ru_RU"
+        },
+        {
+          "value": "Avinstallera Adobe After Effects 2025",
+          "locale": "sv_SE"
+        },
+        {
+          "value": "Adobe After Effects 2025 ''ü Kaldır",
+          "locale": "tr_TR"
+        },
+        {
+          "value": "Видалити Adobe After Effects 2025",
+          "locale": "uk_UA"
+        },
+        {
+          "value": "卸载 Adobe After Effects 2025",
+          "locale": "zh_CN"
+        },
+        {
+          "value": "解除安裝 Adobe After Effects 2025",
+          "locale": "zh_TW"
+        }
+      ]
+    },
+    "DisplayIcon": "[AdobeCommon]/Keyfiles/AfterEffects/25/Icons/ae_installer.icns",
+    "DisplayVersion": {
+      "Language": [
+        {
+          "value": "25.4",
+          "locale": "cs_CZ"
+        },
+        {
+          "value": "25.4",
+          "locale": "da_DK"
+        },
+        {
+          "value": "25.4",
+          "locale": "de_DE"
+        },
+        {
+          "value": "25.4",
+          "locale": "en_AE"
+        },
+        {
+          "value": "25.4",
+          "locale": "en_GB"
+        },
+        {
+          "value": "25.4",
+          "locale": "en_IL"
+        },
+        {
+          "value": "25.4",
+          "locale": "en_US"
+        },
+        {
+          "value": "25.4",
+          "locale": "es_ES"
+        },
+        {
+          "value": "25.4",
+          "locale": "es_MX"
+        },
+        {
+          "value": "25.4",
+          "locale": "fi_FI"
+        },
+        {
+          "value": "25.4",
+          "locale": "fr_CA"
+        },
+        {
+          "value": "25.4",
+          "locale": "fr_FR"
+        },
+        {
+          "value": "25.4",
+          "locale": "fr_MA"
+        },
+        {
+          "value": "25.4",
+          "locale": "hu_HU"
+        },
+        {
+          "value": "25.4",
+          "locale": "it_IT"
+        },
+        {
+          "value": "25.4",
+          "locale": "ja_JP"
+        },
+        {
+          "value": "25.4",
+          "locale": "ko_KR"
+        },
+        {
+          "value": "25.4",
+          "locale": "nb_NO"
+        },
+        {
+          "value": "25.4",
+          "locale": "nl_NL"
+        },
+        {
+          "value": "25.4",
+          "locale": "pl_PL"
+        },
+        {
+          "value": "25.4",
+          "locale": "pt_BR"
+        },
+        {
+          "value": "25.4",
+          "locale": "ro_RO"
+        },
+        {
+          "value": "25.4",
+          "locale": "ru_RU"
+        },
+        {
+          "value": "25.4",
+          "locale": "sv_SE"
+        },
+        {
+          "value": "25.4",
+          "locale": "tr_TR"
+        },
+        {
+          "value": "25.4",
+          "locale": "uk_UA"
+        },
+        {
+          "value": "25.4",
+          "locale": "zh_CN"
+        },
+        {
+          "value": "25.4",
+          "locale": "zh_TW"
+        }
+      ]
+    }
+  },
+  "AutoUpdate": "true",
+  "AppsPanelPreviousVersionConfig": {
+    "ListInPreviousVersion": true,
+    "BrandingName": ""
+  },
+  "MacThinConfig": "useThinOnIntelAndArm",
+  "ProductDescription": {
+    "Tagline": {
+      "Language": [
+        {
+          "value": "Industry Standard motion graphics & visual effects.",
+          "locale": "en_US"
+        },
+        {
+          "value": "Industry Standard motion graphics & visual effects.",
+          "locale": "en_GB"
+        },
+        {
+          "value": "Industry Standard motion graphics & visual effects.",
+          "locale": "en_AE"
+        },
+        {
+          "value": "Industry Standard motion graphics & visual effects.",
+          "locale": "en_IL"
+        },
+        {
+          "value": "Gráficos animados y efectos según los estándares del sector.",
+          "locale": "es_ES"
+        },
+        {
+          "value": "Gráficos animados y efectos según los estándares del sector.",
+          "locale": "es_MX"
+        },
+        {
+          "value": "Branchenführende Animationen und visuelle Effekte.",
+          "locale": "de_DE"
+        },
+        {
+          "value": "Effets visuels et animations graphiques standard.",
+          "locale": "fr_FR"
+        },
+        {
+          "value": "Effets visuels et animations graphiques standard.",
+          "locale": "fr_CA"
+        },
+        {
+          "value": "Effets visuels et animations graphiques standard.",
+          "locale": "fr_MA"
+        },
+        {
+          "value": "Lo standard di settore per grafica animata ed effetti speciali.",
+          "locale": "it_IT"
+        },
+        {
+          "value": "業界標準のモーショングラフィックスとビジュアルエフェクト。",
+          "locale": "ja_JP"
+        },
+        {
+          "value": "업계 표준 모션 그래픽 및 시각 효과입니다.",
+          "locale": "ko_KR"
+        },
+        {
+          "value": "Animações e efeitos visuais padrões da indústria.",
+          "locale": "pt_BR"
+        },
+        {
+          "value": "Отраслевой стандарт анимации и визуальных эффектов.",
+          "locale": "ru_RU"
+        },
+        {
+          "value": "行业标准动态图形和视觉效果。",
+          "locale": "zh_CN"
+        }
+      ]
+    },
+    "DetailedDescription": {
+      "Language": [
+        {
+          "value": "After Effects improves the efficiency of motion graphics creation by streamlining your ability to create data-driven graphics and delivering faster, higher-quality VR results.",
+          "locale": "en_US"
+        },
+        {
+          "value": "After Effects improves the efficiency of motion graphics creation by streamlining your ability to create data-driven graphics and delivering faster, higher-quality VR results.",
+          "locale": "en_GB"
+        },
+        {
+          "value": "After Effects improves the efficiency of motion graphics creation by streamlining your ability to create data-driven graphics and delivering faster, higher-quality VR results.",
+          "locale": "en_AE"
+        },
+        {
+          "value": "After Effects improves the efficiency of motion graphics creation by streamlining your ability to create data-driven graphics and delivering faster, higher-quality VR results.",
+          "locale": "en_IL"
+        },
+        {
+          "value": "After Effects mejora la productividad a la hora de crear gráficos dinámicos, ya que permite agilizar la creación de gráficos de datos y ofrecer resultados de realidad virtual más rápido y de mayor calidad.",
+          "locale": "es_ES"
+        },
+        {
+          "value": "After Effects mejora la productividad a la hora de crear gráficos dinámicos, ya que permite agilizar la creación de gráficos de datos y ofrecer resultados de realidad virtual más rápido y de mayor calidad.",
+          "locale": "es_MX"
+        },
+        {
+          "value": "After Effects verbessert die Effizienz bei der Animationserstellung durch vereinfachte Erstellung datengesteuerter Grafiken und Bereitstellung schnellerer, qualitativ hochwertigerer VR-Resultate.",
+          "locale": "de_DE"
+        },
+        {
+          "value": "After Effects permet de créer des animations graphiques de manière plus efficace en simplifiant la création de graphiques axés sur les données et en générant plus rapidement des résultats VR de meilleure qualité.",
+          "locale": "fr_FR"
+        },
+        {
+          "value": "After Effects permet de créer des animations graphiques de manière plus efficace en simplifiant la création de graphiques axés sur les données et en générant plus rapidement des résultats VR de meilleure qualité.",
+          "locale": "fr_CA"
+        },
+        {
+          "value": "After Effects permet de créer des animations graphiques de manière plus efficace en simplifiant la création de graphiques axés sur les données et en générant plus rapidement des résultats VR de meilleure qualité.",
+          "locale": "fr_MA"
+        },
+        {
+          "value": "After Effects permette di creare grafica animata in modo più efficiente, semplificando la creazione di grafica basata su dati e fornendo risultati VR più rapidi e di maggiore qualità.",
+          "locale": "it_IT"
+        },
+        {
+          "value": "After Effects は、データドリブン型グラフィックの作成を能率化し、高速かつ高品質の VR 出力を生成することで、モーショングラフィックスの作成効率を高めます。",
+          "locale": "ja_JP"
+        },
+        {
+          "value": "After Effects 은 데이터 기반 그래픽 제작 과정을 간소화하고 고품질 VR 결과를 보다 신속하게 제공하여 모션 그래픽 제작 효율을 개선합니다.",
+          "locale": "ko_KR"
+        },
+        {
+          "value": "O After Effects apresenta um processo de criação de animações aprimorado e mais eficiente, por meio da criação otimizada de gráficos ricos em dados e da entrega mais rápida de resultados de realidade virtual de maior qualidade.",
+          "locale": "pt_BR"
+        },
+        {
+          "value": "After Effects повышает эффективность создания анимационной графики благодаря оптимизации работы с графикой на основе данных и повышению качества продуктов VR.",
+          "locale": "ru_RU"
+        },
+        {
+          "value": "After Effects 通过简化数据驱动型图形的创建和实现速度更快、质量更高的 VR 效果，改进了动态图形的创建效率。",
+          "locale": "zh_CN"
+        }
+      ]
+    }
+  },
+  "IsNonCCProduct": false,
+  "CompressionType": "Zip-Lzma2",
+  "MinimumSupportedClientVersion": "4.5.0.300"
+}

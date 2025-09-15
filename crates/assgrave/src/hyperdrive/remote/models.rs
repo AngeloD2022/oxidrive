@@ -1,0 +1,1003 @@
+pub mod products {
+    use serde::{Deserialize, Serialize};
+    use serde_json::Value;
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ProductsRoot {
+        pub channels: Channels,
+        pub builds: Builds,
+        pub containers: Containers,
+        pub entitlement_status: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Channels {
+        pub channel: Vec<Channel>,
+        pub version: String,
+        pub timestamp: i64,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Channel {
+        pub cdn: Cdn,
+        pub products: Products,
+        pub services: Services,
+        pub mobile_apps: MobileApps,
+        pub latest_version_group: String,
+        #[serde(rename = "custom-data")]
+        pub custom_data: CustomData5,
+        pub display_name: String,
+        pub name: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Cdn {
+        pub secure: String,
+        pub non_secure: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Products {
+        pub product: Vec<Product>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Product {
+        #[serde(rename = "type")]
+        pub type_field: String,
+        pub product_info_page: Option<String>,
+        pub display_name: String,
+        pub family: String,
+        pub app_lineage: String,
+        pub family_name: Option<String>,
+        pub product_icons: ProductIcons,
+        pub categories: Categories,
+        pub platforms: Platforms,
+        pub referenced_products: ReferencedProducts,
+        pub groups: Option<String>,
+        #[serde(rename = "custom-data")]
+        pub custom_data: CustomData4,
+        pub version: String,
+        pub id: String,
+        pub sort_index: i64,
+        pub upgrades_older_version: bool,
+        pub remove_conflicts: bool,
+        pub dependency_type: Option<String>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ProductIcons {
+        pub icon: Vec<Icon>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Icon {
+        pub value: String,
+        pub size: String,
+        pub icon_guid: String,
+        pub registry_id: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Categories {
+        pub category: Vec<Category>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Category {
+        pub value: String,
+        #[serde(rename = "sort-order")]
+        pub sort_order: i64,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Platforms {
+        pub platform: Vec<Platform>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Platform {
+        pub language_set: Vec<LanguageSet>,
+        pub modules: Option<Modules>,
+        #[serde(rename = "custom-data")]
+        pub custom_data: CustomData3,
+        pub system_compatibility: SystemCompatibility,
+        pub id: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct LanguageSet {
+        pub locales: Locales,
+        pub urls: Urls,
+        pub dependencies: Dependencies,
+        pub additional_product_codes: AdditionalProductCodes,
+        pub upgrade_product_codes: UpgradeProductCodes,
+        #[serde(rename = "custom-data")]
+        pub custom_data: CustomData2,
+        pub product_code: String,
+        pub name: String,
+        pub install_size: i64,
+        pub package_code: Option<String>,
+        pub build_guid: Option<String>,
+        pub package_type: String,
+        pub base_version: Option<String>,
+        pub product_version: String,
+        pub uwp_product: bool,
+        pub engagement_build: bool,
+        pub maintenance_build: bool,
+        pub esd_data: Option<EsdData>,
+        pub bundle_id: Option<String>,
+        pub bundle_version: Option<String>,
+        pub file_type: Option<String>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Locales {
+        pub locale: Vec<Locale>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Locale {
+        #[serde(rename = "custom-data")]
+        pub custom_data: CustomData,
+        pub name: String,
+        pub leid: Option<String>,
+        pub entitled: bool,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CustomData {
+        #[serde(rename = "custom-entry")]
+        pub custom_entry: Vec<CustomEntry>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CustomEntry {
+        pub value: Vec<String>,
+        pub key: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Urls {
+        #[serde(rename = "lbsURL")]
+        pub lbs_url: String,
+        #[serde(rename = "aamURL")]
+        pub aam_url: String,
+        #[serde(rename = "cc-uri")]
+        pub cc_uri: CcUri,
+        #[serde(rename = "manifestURL")]
+        pub manifest_url: Option<String>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CcUri {
+        pub uri: Vec<Uri>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Uri {
+        pub value: String,
+        pub version: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Dependencies {
+        #[serde(default)]
+        pub dependency: Vec<Dependency>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Dependency {
+        pub sap_code: String,
+        pub base_version: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct AdditionalProductCodes {
+        pub product_code: Vec<Value>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct UpgradeProductCodes {}
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CustomData2 {
+        #[serde(rename = "custom-entry")]
+        pub custom_entry: Vec<CustomEntry2>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CustomEntry2 {
+        pub value: Vec<String>,
+        pub key: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct EsdData {
+        pub name: String,
+        pub size: i64,
+        pub asset_guid: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Modules {
+        pub module: Vec<Module>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Module {
+        pub display_name: String,
+        pub deployment_type: String,
+        pub id: String,
+        pub requires_user_consent: Option<bool>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CustomData3 {
+        #[serde(rename = "custom-entry")]
+        pub custom_entry: Vec<CustomEntry3>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CustomEntry3 {
+        pub value: Vec<String>,
+        pub key: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct SystemCompatibility {
+        pub operating_system: OperatingSystem,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OperatingSystem {
+        pub range: Vec<String>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ReferencedProducts {
+        #[serde(default)]
+        pub referenced_product: Vec<ReferencedProduct>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ReferencedProduct {
+        pub sap_code: String,
+        pub version: String,
+        pub sequence: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CustomData4 {
+        #[serde(rename = "custom-entry")]
+        pub custom_entry: Vec<CustomEntry4>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CustomEntry4 {
+        pub value: Vec<String>,
+        pub key: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Services {}
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct MobileApps {}
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CustomData5 {
+        #[serde(rename = "custom-entry")]
+        pub custom_entry: Vec<CustomEntry5>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CustomEntry5 {
+        pub value: Vec<String>,
+        pub key: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Builds {
+        pub build: Vec<Build>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Build {
+        pub ngl_licensing_info: NglLicensingInfo,
+        pub id: String,
+        #[serde(rename = "type")]
+        pub type_field: String,
+        pub version: String,
+        pub platform: String,
+        pub language_set: String,
+        pub entitled: bool,
+        pub maintenance_build: bool,
+        pub go_live_time: i64,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NglLicensingInfo {
+        pub app_id: Option<String>,
+        pub app_version: Option<String>,
+        pub lib_version: Option<String>,
+        pub build_id: Option<String>,
+        pub ims_client_id: Option<String>,
+        pub ims_app_profile_scope: Option<String>,
+        pub license_mode: Option<String>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Containers {
+        pub container: Vec<Value>,
+    }
+}
+
+pub mod applications {
+    use serde::{Deserialize, Serialize};
+    use serde_json::Value;
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ApplicationRoot {
+        #[serde(rename = "Name")]
+        pub name: String,
+        #[serde(rename = "SAPCode")]
+        pub sapcode: String,
+        #[serde(rename = "CodexVersion")]
+        pub codex_version: String,
+        #[serde(rename = "AssetGuid")]
+        pub asset_guid: String,
+        #[serde(rename = "ProductVersion")]
+        pub product_version: String,
+        #[serde(rename = "BaseVersion")]
+        pub base_version: String,
+        #[serde(rename = "LbsUrl")]
+        pub lbs_url: String,
+        #[serde(rename = "Platform")]
+        pub platform: String,
+        #[serde(rename = "SupportedLanguages")]
+        pub supported_languages: SupportedLanguages,
+        #[serde(rename = "LanguageSet")]
+        pub language_set: String,
+        #[serde(rename = "ConflictingProcesses")]
+        pub conflicting_processes: ConflictingProcesses,
+        #[serde(rename = "AMTConfig")]
+        pub amtconfig: Amtconfig,
+        #[serde(rename = "Packages")]
+        pub packages: Packages,
+        #[serde(rename = "Modules")]
+        pub modules: Modules,
+        #[serde(rename = "Dependencies")]
+        pub dependencies: Dependencies,
+        #[serde(rename = "SystemRequirement")]
+        pub system_requirement: SystemRequirement,
+        pub version: String,
+        #[serde(rename = "NglLicensingInfo")]
+        pub ngl_licensing_info: NglLicensingInfo,
+        #[serde(rename = "AppLineage")]
+        pub app_lineage: String,
+        #[serde(rename = "FamilyName")]
+        pub family_name: String,
+        #[serde(rename = "BuildGuid")]
+        pub build_guid: String,
+        pub self_serve_build: bool,
+        #[serde(rename = "HDBuilderVersion")]
+        pub hdbuilder_version: String,
+        #[serde(rename = "IsSTI")]
+        pub is_sti: bool,
+        #[serde(rename = "DeltaUpdateConfig")]
+        pub delta_update_config: DeltaUpdateConfig,
+        #[serde(rename = "AppsPanelFullAppUpdateConfig")]
+        pub apps_panel_full_app_update_config: AppsPanelFullAppUpdateConfig,
+        #[serde(rename = "Cdn")]
+        pub cdn: Cdn,
+        #[serde(rename = "ReferenceProducts")]
+        pub reference_products: ReferenceProducts,
+        #[serde(rename = "WhatsNewUrl")]
+        pub whats_new_url: WhatsNewUrl,
+        #[serde(rename = "TutorialUrl")]
+        pub tutorial_url: TutorialUrl,
+        #[serde(rename = "AppLaunch")]
+        pub app_launch: String,
+        #[serde(rename = "InstallDir")]
+        pub install_dir: InstallDir,
+        #[serde(rename = "MoreInfoUrl")]
+        pub more_info_url: MoreInfoUrl,
+        #[serde(rename = "AddRemoveInfo")]
+        pub add_remove_info: AddRemoveInfo,
+        #[serde(rename = "AutoUpdate")]
+        pub auto_update: String,
+        #[serde(rename = "AppsPanelPreviousVersionConfig")]
+        pub apps_panel_previous_version_config: AppsPanelPreviousVersionConfig,
+        #[serde(rename = "MacThinConfig")]
+        pub mac_thin_config: String,
+        #[serde(rename = "ProductDescription")]
+        pub product_description: ProductDescription,
+        #[serde(rename = "IsNonCCProduct")]
+        pub is_non_ccproduct: bool,
+        #[serde(rename = "CompressionType")]
+        pub compression_type: String,
+        #[serde(rename = "MinimumSupportedClientVersion")]
+        pub minimum_supported_client_version: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct SupportedLanguages {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ConflictingProcesses {
+        #[serde(rename = "ConflictingProcess")]
+        pub conflicting_process: Vec<ConflictingProcess>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ConflictingProcess {
+        #[serde(rename = "RegularExpression")]
+        pub regular_expression: String,
+        #[serde(rename = "ProcessDisplayName")]
+        pub process_display_name: String,
+        #[serde(rename = "Reason")]
+        pub reason: String,
+        #[serde(rename = "ParentRegularExpression")]
+        pub parent_regular_expression: String,
+        #[serde(rename = "ParentDisplayName")]
+        pub parent_display_name: String,
+        #[serde(rename = "RelativePath")]
+        pub relative_path: String,
+        pub headless: bool,
+        pub force_kill_allowed: bool,
+        pub adobe_owned: bool,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Amtconfig {
+        pub path: String,
+        #[serde(rename = "LEID")]
+        pub leid: String,
+        #[serde(rename = "appID")]
+        pub app_id: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Packages {
+        #[serde(rename = "Package")]
+        pub package: Vec<Package>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Package {
+        #[serde(rename = "Type")]
+        pub type_field: String,
+        #[serde(rename = "PackageName")]
+        pub package_name: String,
+        #[serde(rename = "PackageVersion")]
+        pub package_version: String,
+        #[serde(rename = "DownloadSize")]
+        pub download_size: i64,
+        #[serde(rename = "ExtractSize")]
+        pub extract_size: i64,
+        #[serde(rename = "Path")]
+        pub path: String,
+        #[serde(rename = "Features")]
+        pub features: Features,
+        #[serde(rename = "Format")]
+        pub format: String,
+        #[serde(rename = "ValidationURL")]
+        pub validation_url: String,
+        pub package_hash_key: String,
+        #[serde(rename = "DeltaPackages")]
+        pub delta_packages: Vec<DeltaPackage>,
+        #[serde(rename = "ValidationURLs")]
+        pub validation_urls: ValidationUrls,
+        #[serde(rename = "Condition")]
+        pub condition: String,
+        #[serde(rename = "ProcessorFamily")]
+        pub processor_family: Option<String>,
+        #[serde(rename = "InstallSequenceNumber")]
+        pub install_sequence_number: i64,
+        pub full_package_name: String,
+        #[serde(rename = "PackageValidation")]
+        pub package_validation: String,
+        #[serde(rename = "AliasPackageName")]
+        pub alias_package_name: String,
+        #[serde(rename = "PackageScheme")]
+        pub package_scheme: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Features {
+        #[serde(rename = "Feature")]
+        pub feature: Vec<Value>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct DeltaPackage {
+        #[serde(rename = "SchemaVersion")]
+        pub schema_version: String,
+        #[serde(rename = "PackageName")]
+        pub package_name: String,
+        #[serde(rename = "Path")]
+        pub path: String,
+        #[serde(rename = "BasePackageVersion")]
+        pub base_package_version: String,
+        #[serde(rename = "ValidationURL")]
+        pub validation_url: String,
+        #[serde(rename = "DownloadSize")]
+        pub download_size: i64,
+        #[serde(rename = "ExtractSize")]
+        pub extract_size: i64,
+        #[serde(rename = "MetadataFilePath")]
+        pub metadata_file_path: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ValidationUrls {
+        #[serde(rename = "TYPE2")]
+        pub type2: String,
+        #[serde(rename = "TYPE1")]
+        pub type1: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Modules {
+        #[serde(rename = "Module")]
+        pub module: Vec<Module>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Module {
+        #[serde(rename = "Id")]
+        pub id: String,
+        #[serde(rename = "DisplayName")]
+        pub display_name: String,
+        #[serde(rename = "DeploymentType")]
+        pub deployment_type: String,
+        #[serde(rename = "RequiresUserConsent")]
+        pub requires_user_consent: bool,
+        #[serde(rename = "ReferencePackages")]
+        pub reference_packages: ReferencePackages,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ReferencePackages {
+        #[serde(rename = "ReferencePackage")]
+        pub reference_package: Vec<String>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Dependencies {
+        #[serde(rename = "Dependency")]
+        pub dependency: Vec<Dependency>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Dependency {
+        #[serde(rename = "SAPCode")]
+        pub sapcode: String,
+        #[serde(rename = "BaseVersion")]
+        pub base_version: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct SystemRequirement {
+        #[serde(rename = "SupportedOsVersionRange")]
+        pub supported_os_version_range: Vec<SupportedOsVersionRange>,
+        #[serde(rename = "ExternalUrl")]
+        pub external_url: ExternalUrl,
+        #[serde(rename = "CheckCompatibility")]
+        pub check_compatibility: CheckCompatibility,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct SupportedOsVersionRange {
+        pub min: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ExternalUrl {
+        #[serde(rename = "Stage")]
+        pub stage: Stage,
+        #[serde(rename = "Prod")]
+        pub prod: Prod,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Stage {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language2>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language2 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Prod {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language3>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language3 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CheckCompatibility {
+        #[serde(rename = "Content")]
+        pub content: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct NglLicensingInfo {
+        #[serde(rename = "AppId")]
+        pub app_id: String,
+        #[serde(rename = "AppVersion")]
+        pub app_version: String,
+        #[serde(rename = "LibVersion")]
+        pub lib_version: String,
+        #[serde(rename = "BuildId")]
+        pub build_id: String,
+        #[serde(rename = "ImsClientId")]
+        pub ims_client_id: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct DeltaUpdateConfig {
+        #[serde(rename = "Enabled")]
+        pub enabled: bool,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct AppsPanelFullAppUpdateConfig {
+        #[serde(rename = "PreviousVersionRange")]
+        pub previous_version_range: PreviousVersionRange,
+        #[serde(rename = "ShowDialogBox")]
+        pub show_dialog_box: bool,
+        #[serde(rename = "ImportPreferenceCheckBox")]
+        pub import_preference_check_box: ImportPreferenceCheckBox,
+        #[serde(rename = "RemovePreviousVersionCheckBox")]
+        pub remove_previous_version_check_box: RemovePreviousVersionCheckBox,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct PreviousVersionRange {
+        pub min: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ImportPreferenceCheckBox {
+        #[serde(rename = "DefaultValue")]
+        pub default_value: bool,
+        #[serde(rename = "Show")]
+        pub show: bool,
+        #[serde(rename = "AllowToggle")]
+        pub allow_toggle: bool,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct RemovePreviousVersionCheckBox {
+        #[serde(rename = "DefaultValue")]
+        pub default_value: bool,
+        #[serde(rename = "Show")]
+        pub show: bool,
+        #[serde(rename = "AllowToggle")]
+        pub allow_toggle: bool,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Cdn {
+        #[serde(rename = "Secure")]
+        pub secure: String,
+        #[serde(rename = "NonSecure")]
+        pub non_secure: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ReferenceProducts {
+        #[serde(rename = "ReferenceProduct")]
+        pub reference_product: Vec<ReferenceProduct>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ReferenceProduct {
+        #[serde(rename = "SAPCode")]
+        pub sapcode: String,
+        #[serde(rename = "BaseVersion")]
+        pub base_version: String,
+        pub sequence: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct WhatsNewUrl {
+        #[serde(rename = "Stage")]
+        pub stage: Stage2,
+        #[serde(rename = "Prod")]
+        pub prod: Prod2,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Stage2 {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language4>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language4 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Prod2 {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language5>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language5 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct TutorialUrl {
+        #[serde(rename = "Stage")]
+        pub stage: Stage3,
+        #[serde(rename = "Prod")]
+        pub prod: Prod3,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Stage3 {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language6>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language6 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Prod3 {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language7>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language7 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct InstallDir {
+        pub value: String,
+        pub max_path: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct MoreInfoUrl {
+        #[serde(rename = "Stage")]
+        pub stage: Stage4,
+        #[serde(rename = "Prod")]
+        pub prod: Prod4,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Stage4 {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language8>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language8 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Prod4 {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language9>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language9 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct AddRemoveInfo {
+        #[serde(rename = "DisplayName")]
+        pub display_name: DisplayName,
+        #[serde(rename = "DisplayIcon")]
+        pub display_icon: String,
+        #[serde(rename = "DisplayVersion")]
+        pub display_version: DisplayVersion,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct DisplayName {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language10>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language10 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct DisplayVersion {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language11>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language11 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct AppsPanelPreviousVersionConfig {
+        #[serde(rename = "ListInPreviousVersion")]
+        pub list_in_previous_version: bool,
+        #[serde(rename = "BrandingName")]
+        pub branding_name: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ProductDescription {
+        #[serde(rename = "Tagline")]
+        pub tagline: Tagline,
+        #[serde(rename = "DetailedDescription")]
+        pub detailed_description: DetailedDescription,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Tagline {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language12>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language12 {
+        pub value: String,
+        pub locale: String,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct DetailedDescription {
+        #[serde(rename = "Language")]
+        pub language: Vec<Language13>,
+    }
+
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Language13 {
+        pub value: String,
+        pub locale: String,
+    }
+}
