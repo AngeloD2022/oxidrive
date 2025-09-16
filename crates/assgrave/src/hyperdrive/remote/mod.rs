@@ -1,4 +1,6 @@
 use models::*;
+use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
 mod models;
 
@@ -48,10 +50,49 @@ impl ProductPlatform {
     }
 }
 
-pub fn get_products(platform: &ProductPlatform) -> Result<products::ProductsRoot, ()> {
+
+fn configure_headers(headers: &mut HeaderMap) {
+    let extra = vec![
+        ("x-api-key", "CC_HD_ESD_1_0"),
+        ("x-adobe-app-id", "accc-apps-panel-desktop"),
+    ];
+
+    for (name, val) in extra {
+        headers.append(HeaderName::from_static(name), HeaderValue::from_static(val));
+    }
+}
+
+pub async fn get_products(platform: &ProductPlatform) -> Result<products::TopLevel, reqwest::Error> {
+    let url = format!(
+        "https://prod-rel-ffc-ccm.oobesaas.adobe.com/adobe-ffc-external/core/v6/products/all?_type=json&channel=ccm&channel=sti&platform={}&productType=Desktop",
+        platform.to_cdn_key()
+    );
+
+    let mut headers = HeaderMap::new();
+    configure_headers(&mut headers);
+
+    let client = Client::builder().default_headers(headers).build().unwrap();
+
+    let response = client.get(url).send().await?.error_for_status()?;
+    let data = response.json::<products::TopLevel>().await?;
+
+    Ok(data)
+}
+
+pub async fn get_application() -> Result<applications::ApplicationRoot, ()> {
     todo!();
 }
 
-pub fn get_application() -> Result<applications::ApplicationRoot, ()> {
-    todo!();
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_products() {
+        let platform = ProductPlatform::MacAarch64;
+
+        let response = get_products(&platform).await.unwrap();
+    }
+
 }
