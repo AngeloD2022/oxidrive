@@ -62,7 +62,7 @@ fn configure_headers(headers: &mut HeaderMap) {
     }
 }
 
-pub async fn get_products(platform: &ProductPlatform) -> Result<products::TopLevel, reqwest::Error> {
+pub async fn get_products(platform: &ProductPlatform) -> Result<Products, reqwest::Error> {
     let url = format!(
         "https://prod-rel-ffc-ccm.oobesaas.adobe.com/adobe-ffc-external/core/v6/products/all?_type=json&channel=ccm&channel=sti&platform={}&productType=Desktop",
         platform.to_cdn_key()
@@ -74,13 +74,25 @@ pub async fn get_products(platform: &ProductPlatform) -> Result<products::TopLev
     let client = Client::builder().default_headers(headers).build().unwrap();
 
     let response = client.get(url).send().await?.error_for_status()?;
-    let data = response.json::<products::TopLevel>().await?;
+    let data = response.json::<Products>().await?;
 
     Ok(data)
 }
 
-pub async fn get_application() -> Result<applications::ApplicationRoot, ()> {
-    todo!();
+pub async fn get_application(build_guid: &str) -> Result<Application, reqwest::Error> {
+    const url: &str = "https://cdn-ffc.oobesaas.adobe.com/core/v3/applications";
+
+    let mut headers = HeaderMap::new();
+    configure_headers(&mut headers);
+
+    headers.append(HeaderName::from_static("x-adobe-build-guid"), build_guid.parse().unwrap());
+
+    let client = Client::builder().default_headers(headers).build().unwrap();
+
+    let response = client.get(url).send().await?.error_for_status()?;
+    let data = response.json::<Application>().await?;
+
+    Ok(data)
 }
 
 
@@ -91,8 +103,13 @@ mod tests {
     #[tokio::test]
     async fn test_get_products() {
         let platform = ProductPlatform::MacAarch64;
-
         let response = get_products(&platform).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_get_application() {
+        let guid = "5b1886a2-0714-4b2c-be37-bfd622522da6";
+        let response  = get_application(guid).await.unwrap();
     }
 
 }
