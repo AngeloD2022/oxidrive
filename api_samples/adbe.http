@@ -1,0 +1,15 @@
+###
+
+# curl --location 'https://cdn-ffc.oobesaas.adobe.com/core/v3/applications'
+#--header 'User-Agent: Adobe Application Manager 2.0'
+#--header 'X-Api-Key: CC_HD_ESD_1_0'
+#--header 'X-Adobe-App-Id: accc-apps-panel-desktop'
+#--header 'x-adobe-build-guid: 063ad0f3-5d2d-4163-b60b-2c2be65b580a'
+GET https://cdn-ffc.oobesaas.adobe.com/core/v3/applications
+User-Agent: Adobe Application Manager 2.0
+X-Api-Key: CC_HD_ESD_1_0
+X-Adobe-App-Id: accc-apps-panel-desktop
+x-adobe-build-guid: 3f1ac470-5b45-41e5-b51c-0c630c9d6fdf
+
+###
+
