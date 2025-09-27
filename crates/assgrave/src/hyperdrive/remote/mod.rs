@@ -2,7 +2,7 @@ use models::*;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
-mod models;
+pub mod models;
 
 pub enum ProductPlatform {
     MacAarch64,
@@ -51,7 +51,7 @@ impl ProductPlatform {
 }
 
 
-fn configure_headers(headers: &mut HeaderMap) {
+pub(crate) fn configure_headers(headers: &mut HeaderMap) {
     let extra = vec![
         ("x-api-key", "CC_HD_ESD_1_0"),
         ("x-adobe-app-id", "accc-apps-panel-desktop"),
@@ -64,7 +64,8 @@ fn configure_headers(headers: &mut HeaderMap) {
 
 pub async fn get_products(platform: &ProductPlatform) -> Result<Products, reqwest::Error> {
     let url = format!(
-        "https://prod-rel-ffc-ccm.oobesaas.adobe.com/adobe-ffc-external/core/v6/products/all?_type=json&channel=ccm&channel=sti&platform={}&productType=Desktop",
+        "https://prod-rel-ffc-ccm.oobesaas.adobe.com/adobe-ffc-external/core/v6/products/all?\
+        _type=json&channel=ccm&channel=sti&platform={}&productType=Desktop",
         platform.to_cdn_key()
     );
 
