@@ -133,9 +133,16 @@ impl ProductsClient {
             .header("x-adobe-build-guid", build_guid)
             .send().await?;
 
-        let data = r.json::<Application>().await?;
+        // let data = r.json::<Application>().await?;
+        let raw = r.text().await?;
 
-        Ok(data)
+        // YES, I NEED TO FUCKING DO IT THIS WAY FOR SOME REASON.
+        // I can't use the deserializer off of reqwest because it keeps producing an enigmatic
+        // duplicate key error. FUCK.
+        let value: serde_json::Value = serde_json::from_str(&raw).unwrap();
+        let resp: Application = serde_json::from_value(value).unwrap();
+
+        Ok(resp)
     }
 
     // pub async fn get_application(
@@ -217,9 +224,9 @@ mod tests {
 
         let mut client = client.unwrap();
         let ch = client.get_reduced_channel("CCM").unwrap();
-        let ae_latest = ch.index.get_latest("AEFT").unwrap();
+        let latest = ch.index.get_latest("PHSP").unwrap();
 
-        let guid = ae_latest.build_guid.unwrap().to_owned();
+        let guid = latest.build_guid.unwrap().to_owned();
         let application = client.get_application(&guid).await.unwrap();
 
         let ae_deps = client.get_download_dependencies(&application).await.unwrap().unwrap();

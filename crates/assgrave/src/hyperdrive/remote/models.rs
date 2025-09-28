@@ -208,44 +208,9 @@ pub struct Categories {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Category {
-    pub value: Value,
+    pub value: String,
 
     pub sort_order: i64,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum Value {
-    #[serde(rename = "acrobat-pdf")]
-    AcrobatPdf,
-
-    Ar,
-
-    #[serde(rename = "beta-apps")]
-    BetaApps,
-
-    Design,
-
-    #[serde(rename = "gen-ai")]
-    GenAi,
-
-    Illustration,
-
-    Photography,
-
-    Prerelease,
-
-    #[serde(rename = "social-media")]
-    SocialMedia,
-
-    #[serde(rename = "video-audio")]
-    VideoAudio,
-
-    #[serde(rename = "Web and App design")]
-    WebAndAppDesign,
-
-    #[serde(rename = "your-free-membership")]
-    YourFreeMembership,
 }
 
 #[derive(Serialize, Deserialize)]
