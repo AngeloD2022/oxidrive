@@ -2,7 +2,7 @@
 
 use lzma_sdk_sys::{
     Allocator, Byte, CLzma2Dec, ELzmaFinishMode, ELzmaStatus, Lzma2Dec_AllocateProbs,
-    Lzma2Dec_DecodeToDic, Lzma2Dec_Init, SZ_OK, SizeT,
+    Lzma2Dec_DecodeToDic, Lzma2Dec_Init, SizeT, SZ_OK,
 };
 use std::mem::MaybeUninit;
 

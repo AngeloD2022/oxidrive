@@ -1,8 +1,9 @@
 use crate::hyperdrive::remote::configure_headers;
-use crate::hyperdrive::remote::models::{Application, Products};
+use crate::hyperdrive::remote::models::Application;
+use std::fs;
 
-use reqwest::Client;
 use reqwest::header::HeaderMap;
+use reqwest::Client;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -17,11 +18,6 @@ pub trait ProgressSink: Send {
 pub struct NoopProgress;
 impl ProgressSink for NoopProgress {}
 
-struct MinimalDependency {
-    sap_code: String,
-    version: String,
-    build_guid: String,
-}
 
 pub struct ApplicationDownloader<'a> {
     output_dir: PathBuf,
@@ -52,8 +48,10 @@ impl<'a> ApplicationDownloader<'a> {
         })
     }
 
-    pub fn resolve_deps(&self) {
-        todo!()
+    pub fn prepare_directory(&self) {
+        if !self.output_dir.exists() {
+            fs::create_dir_all(&self.output_dir).unwrap();
+        }
     }
 
     pub async fn start_download<P: ProgressSink>(&self, progress: &mut P) {

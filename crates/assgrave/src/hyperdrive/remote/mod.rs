@@ -1,9 +1,7 @@
-use models::*;
-use reqwest::Client;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use std::collections::HashMap;
-use std::sync::Arc;
 use crate::hyperdrive::remote::index::ChannelReduced;
+use models::*;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use reqwest::Client;
 
 mod index;
 pub mod models;
@@ -83,25 +81,6 @@ pub async fn get_products(platform: &ProductPlatform) -> Result<Products, reqwes
     Ok(data)
 }
 
-pub async fn get_application(build_guid: &str) -> Result<Application, reqwest::Error> {
-    const URL: &str = "https://cdn-ffc.oobesaas.adobe.com/core/v3/applications";
-
-    let mut headers = HeaderMap::new();
-    configure_headers(&mut headers);
-
-    headers.append(
-        HeaderName::from_static("x-adobe-build-guid"),
-        build_guid.parse().unwrap(),
-    );
-
-    let client = Client::builder().default_headers(headers).build().unwrap();
-
-    let response = client.get(URL).send().await?.error_for_status()?;
-    let data = response.json::<Application>().await?;
-
-    Ok(data)
-}
-
 
 pub struct ProductsClient {
     products: Products,
@@ -137,26 +116,13 @@ impl ProductsClient {
         let raw = r.text().await?;
 
         // YES, I NEED TO FUCKING DO IT THIS WAY FOR SOME REASON.
-        // I can't use the deserializer off of reqwest because it keeps producing an enigmatic
+        // I can't use the deserializer off of reqwest because it keeps producing an unexplainable
         // duplicate key error. FUCK.
         let value: serde_json::Value = serde_json::from_str(&raw).unwrap();
         let resp: Application = serde_json::from_value(value).unwrap();
 
         Ok(resp)
     }
-
-    // pub async fn get_application(
-    //     &self,
-    //     build_guid: &str,
-    // ) -> Result<&Application, reqwest::Error> {
-    //     if !self.application_cache.contains_key(build_guid) {
-    //         let application = self.fetch_application(build_guid).await?;
-    //         self.application_cache
-    //             .insert(build_guid.to_string(), application);
-    //     }
-    //
-    //     Ok(&self.application_cache[build_guid])
-    // }
 
     fn get_reduced_channel(&self, name: &str) -> Option<ChannelReduced> {
         let channel = self.products.channels.channel
@@ -203,24 +169,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_application() {
-        let guid = "5b1886a2-0714-4b2c-be37-bfd622522da6";
-        let response = get_application(guid).await.unwrap();
-
-        let _x: Vec<_> = response
-            .packages
-            .package
-            .iter()
-            .filter(|p| p.condition.is_some())
-            .collect();
-
-        println!("s");
-    }
-
-    #[tokio::test]
     async fn test_products_client() {
         let mut client = ProductsClient::new(&ProductPlatform::MacOSUniversal).await;
-
 
         let mut client = client.unwrap();
         let ch = client.get_reduced_channel("CCM").unwrap();
