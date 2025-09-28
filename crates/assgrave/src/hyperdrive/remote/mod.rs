@@ -1,7 +1,11 @@
 use models::*;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use std::collections::HashMap;
+use std::sync::Arc;
+use crate::hyperdrive::remote::index::ChannelReduced;
 
+mod index;
 pub mod models;
 
 pub enum ProductPlatform {
@@ -41,7 +45,7 @@ impl ProductPlatform {
             ProductPlatform::MacAarch64 => "macarm64",
             ProductPlatform::MacIntel64 => "osx10-64",
             ProductPlatform::MacIntel32 => "osx10",
-            ProductPlatform::MacOSUniversal => "macuniversal",
+            ProductPlatform::MacOSUniversal => "osx10-64,osx10,macarm64,macuniversal",
             ProductPlatform::WindowsAarch64 => "winarm64",
             ProductPlatform::WindowsIntel64 => "win64",
             ProductPlatform::WindowsIntel32 => "win32",
@@ -49,7 +53,6 @@ impl ProductPlatform {
         .to_string()
     }
 }
-
 
 pub(crate) fn configure_headers(headers: &mut HeaderMap) {
     let extra = vec![
@@ -81,21 +84,106 @@ pub async fn get_products(platform: &ProductPlatform) -> Result<Products, reqwes
 }
 
 pub async fn get_application(build_guid: &str) -> Result<Application, reqwest::Error> {
-    const url: &str = "https://cdn-ffc.oobesaas.adobe.com/core/v3/applications";
+    const URL: &str = "https://cdn-ffc.oobesaas.adobe.com/core/v3/applications";
 
     let mut headers = HeaderMap::new();
     configure_headers(&mut headers);
 
-    headers.append(HeaderName::from_static("x-adobe-build-guid"), build_guid.parse().unwrap());
+    headers.append(
+        HeaderName::from_static("x-adobe-build-guid"),
+        build_guid.parse().unwrap(),
+    );
 
     let client = Client::builder().default_headers(headers).build().unwrap();
 
-    let response = client.get(url).send().await?.error_for_status()?;
+    let response = client.get(URL).send().await?.error_for_status()?;
     let data = response.json::<Application>().await?;
 
     Ok(data)
 }
 
+
+pub struct ProductsClient {
+    products: Products,
+    client: Client,
+    // application_cache: HashMap<String, Application>,
+}
+
+impl ProductsClient {
+    pub async fn new(platform: &ProductPlatform) -> Result<Self, reqwest::Error> {
+        let products = get_products(&platform).await?;
+
+        let mut headers = HeaderMap::new();
+        configure_headers(&mut headers);
+
+        let client = Client::builder().default_headers(headers).build().unwrap();
+
+        Ok(ProductsClient {
+            products,
+            client,
+            // application_cache: HashMap::new(),
+        })
+    }
+
+    async fn get_application(&self, build_guid: &str) -> Result<Application, reqwest::Error> {
+        const URL: &str = "https://cdn-ffc.oobesaas.adobe.com/core/v3/applications";
+
+        let r 
+            = self.client.get(URL)
+            .header("x-adobe-build-guid", build_guid)
+            .send().await?;
+
+        let data = r.json::<Application>().await?;
+
+        Ok(data)
+    }
+
+    // pub async fn get_application(
+    //     &self,
+    //     build_guid: &str,
+    // ) -> Result<&Application, reqwest::Error> {
+    //     if !self.application_cache.contains_key(build_guid) {
+    //         let application = self.fetch_application(build_guid).await?;
+    //         self.application_cache
+    //             .insert(build_guid.to_string(), application);
+    //     }
+    //
+    //     Ok(&self.application_cache[build_guid])
+    // }
+
+    fn get_reduced_channel(&self, name: &str) -> Option<ChannelReduced> {
+        let channel = self.products.channels.channel
+            .iter().find(|ch| ch.name.to_ascii_lowercase() == name.to_ascii_lowercase())?;
+        Some(ChannelReduced::from_channel(channel))
+    }
+
+    pub async fn get_download_dependencies(
+        &mut self,
+        application: &Application,
+    ) -> Result<Option<Vec<Application>>, reqwest::Error> {
+
+        // Resolve dependencies of application using Products index.
+        if let Some(dependencies) = &application.dependencies {
+            let mut result = Vec::new();
+
+            // Build an index of the channel for easy navigation.
+            let reduced = self.get_reduced_channel("STI").unwrap();
+
+            for dep in &dependencies.dependency {
+                if let Some(product) = reduced.index.get(&dep.sap_code, &dep.base_version) {
+                    if let Some(build_guid) = product.build_guid {
+                        let resolved_application = self.get_application(build_guid).await?;
+                        result.push(resolved_application);
+                    }
+                }
+            }
+
+            Ok(Some(result))
+        } else {
+            Ok(None)
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -110,7 +198,31 @@ mod tests {
     #[tokio::test]
     async fn test_get_application() {
         let guid = "5b1886a2-0714-4b2c-be37-bfd622522da6";
-        let response  = get_application(guid).await.unwrap();
+        let response = get_application(guid).await.unwrap();
+
+        let _x: Vec<_> = response
+            .packages
+            .package
+            .iter()
+            .filter(|p| p.condition.is_some())
+            .collect();
+
+        println!("s");
     }
 
+    #[tokio::test]
+    async fn test_products_client() {
+        let mut client = ProductsClient::new(&ProductPlatform::MacOSUniversal).await;
+
+
+        let mut client = client.unwrap();
+        let ch = client.get_reduced_channel("CCM").unwrap();
+        let ae_latest = ch.index.get_latest("AEFT").unwrap();
+
+        let guid = ae_latest.build_guid.unwrap().to_owned();
+        let application = client.get_application(&guid).await.unwrap();
+
+        let ae_deps = client.get_download_dependencies(&application).await.unwrap().unwrap();
+        println!("{}", ae_deps.len())
+    }
 }

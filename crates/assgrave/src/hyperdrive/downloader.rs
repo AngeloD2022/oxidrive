@@ -1,9 +1,10 @@
-use std::path::PathBuf;
-use std::time::Duration;
+use crate::hyperdrive::remote::configure_headers;
+use crate::hyperdrive::remote::models::{Application, Products};
+
 use reqwest::Client;
 use reqwest::header::HeaderMap;
-use crate::hyperdrive::remote::configure_headers;
-use crate::hyperdrive::remote::models::Application;
+use std::path::PathBuf;
+use std::time::Duration;
 
 const CDN_SECURE: &str = "https://ccmdls.adobe.com";
 
@@ -13,19 +14,26 @@ pub trait ProgressSink: Send {
     fn on_file_done(file: &str) {}
     fn on_error(file: &str) {}
 }
-
 pub struct NoopProgress;
 impl ProgressSink for NoopProgress {}
 
-pub struct ProductDownloader<'a> {
+struct MinimalDependency {
+    sap_code: String,
+    version: String,
+    build_guid: String,
+}
+
+pub struct ApplicationDownloader<'a> {
     output_dir: PathBuf,
-    client: reqwest::Client,
+    client: Client,
     app_spec: &'a Application,
 }
 
-impl<'a> ProductDownloader<'a> {
-
-    pub fn new(output_dir: PathBuf, application: &'a Application) -> Result<Self, Box<dyn std::error::Error>> {
+impl<'a> ApplicationDownloader<'a> {
+    pub fn new(
+        output_dir: PathBuf,
+        application: &'a Application,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let mut headers = HeaderMap::new();
         configure_headers(&mut headers);
 
@@ -37,19 +45,24 @@ impl<'a> ProductDownloader<'a> {
             .default_headers(headers)
             .build()?;
 
-        Ok(Self {output_dir, client, app_spec: application})
+        Ok(Self {
+            output_dir,
+            client,
+            app_spec: application,
+        })
     }
 
-    pub async fn start_download<P: ProgressSink>(progress: &mut P) {
+    pub fn resolve_deps(&self) {
+        todo!()
+    }
 
+    pub async fn start_download<P: ProgressSink>(&self, progress: &mut P) {
         // - use app_spec.packages.package[i].download_size to determine chunk width.
         // - compute ranges
         // - use a tokio semaphore to not go overboard with concurrency
 
+        const CHUNK_SIZE: usize = 10_000_000;
+
         todo!();
     }
 }
-
-
-
-
