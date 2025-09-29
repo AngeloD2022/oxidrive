@@ -63,7 +63,6 @@ pub struct NglLicensingInfo {
     pub ims_app_profile_scope: Option<String>,
 }
 
-
 #[derive(Serialize, Deserialize)]
 pub enum LicenseMode {
     #[serde(rename = "FREE")]
@@ -150,8 +149,7 @@ pub struct CustomEntry {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct MobileApps {
-}
+pub struct MobileApps {}
 
 #[derive(Serialize, Deserialize)]
 pub struct ProductsClass {

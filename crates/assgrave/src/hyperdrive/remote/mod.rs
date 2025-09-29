@@ -1,7 +1,7 @@
 use crate::hyperdrive::remote::index::ChannelReduced;
 use models::*;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
 mod index;
 pub mod models;
@@ -81,7 +81,6 @@ pub async fn get_products(platform: &ProductPlatform) -> Result<Products, reqwes
     Ok(data)
 }
 
-
 pub struct ProductsClient {
     products: Products,
     client: Client,
@@ -107,10 +106,12 @@ impl ProductsClient {
     async fn get_application(&self, build_guid: &str) -> Result<Application, reqwest::Error> {
         const URL: &str = "https://cdn-ffc.oobesaas.adobe.com/core/v3/applications";
 
-        let r 
-            = self.client.get(URL)
+        let r = self
+            .client
+            .get(URL)
             .header("x-adobe-build-guid", build_guid)
-            .send().await?;
+            .send()
+            .await?;
 
         // let data = r.json::<Application>().await?;
         let raw = r.text().await?;
@@ -124,17 +125,20 @@ impl ProductsClient {
         Ok(resp)
     }
 
-    fn get_reduced_channel(&self, name: &str) -> Option<ChannelReduced> {
-        let channel = self.products.channels.channel
-            .iter().find(|ch| ch.name.to_ascii_lowercase() == name.to_ascii_lowercase())?;
+    pub fn get_reduced_channel(&self, name: &str) -> Option<ChannelReduced> {
+        let channel = self
+            .products
+            .channels
+            .channel
+            .iter()
+            .find(|ch| ch.name.to_ascii_lowercase() == name.to_ascii_lowercase())?;
         Some(ChannelReduced::from_channel(channel))
     }
 
     pub async fn get_download_dependencies(
-        &mut self,
+        &self,
         application: &Application,
     ) -> Result<Option<Vec<Application>>, reqwest::Error> {
-
         // Resolve dependencies of application using Products index.
         if let Some(dependencies) = &application.dependencies {
             let mut result = Vec::new();
@@ -179,7 +183,11 @@ mod tests {
         let guid = latest.build_guid.unwrap().to_owned();
         let application = client.get_application(&guid).await.unwrap();
 
-        let ae_deps = client.get_download_dependencies(&application).await.unwrap().unwrap();
+        let ae_deps = client
+            .get_download_dependencies(&application)
+            .await
+            .unwrap()
+            .unwrap();
         println!("{}", ae_deps.len())
     }
 }

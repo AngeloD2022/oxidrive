@@ -35,7 +35,6 @@ impl<'a> ChannelIndex<'a> {
     }
 }
 
-
 fn ver_newer(a: &str, b: &str) -> bool {
     let aspl = a.split(".");
     let bspl: Vec<_> = b.split(".").collect();
@@ -54,7 +53,6 @@ fn ver_newer(a: &str, b: &str) -> bool {
 
     false
 }
-
 
 pub struct ChannelReduced<'a> {
     code: String,

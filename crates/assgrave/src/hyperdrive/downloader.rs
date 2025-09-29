@@ -1,9 +1,9 @@
-use crate::hyperdrive::remote::configure_headers;
-use crate::hyperdrive::remote::models::Application;
-use std::fs;
-
-use reqwest::header::HeaderMap;
+use crate::hyperdrive::remote::models::{Application, Package};
+use crate::hyperdrive::remote::{ProductsClient, configure_headers};
 use reqwest::Client;
+use reqwest::header::HeaderMap;
+use std::fs;
+use std::ops::Deref;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -18,17 +18,18 @@ pub trait ProgressSink: Send {
 pub struct NoopProgress;
 impl ProgressSink for NoopProgress {}
 
-
 pub struct ApplicationDownloader<'a> {
     output_dir: PathBuf,
     client: Client,
     app_spec: &'a Application,
+    products_client: &'a ProductsClient,
 }
 
 impl<'a> ApplicationDownloader<'a> {
-    pub fn new(
+    pub async fn new(
         output_dir: PathBuf,
         application: &'a Application,
+        products_client: &'a ProductsClient,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let mut headers = HeaderMap::new();
         configure_headers(&mut headers);
@@ -45,6 +46,7 @@ impl<'a> ApplicationDownloader<'a> {
             output_dir,
             client,
             app_spec: application,
+            products_client,
         })
     }
 
@@ -54,12 +56,33 @@ impl<'a> ApplicationDownloader<'a> {
         }
     }
 
-    pub async fn start_download<P: ProgressSink>(&self, progress: &mut P) {
-        // - use app_spec.packages.package[i].download_size to determine chunk width.
+    fn compute_ranges_for_pkg(&self, pkg: &Package) -> Vec<(u64, u64)> {
+        let size = pkg.download_size as u64;
+        const CHUNK_SIZE: u64 = 10_000_000;
+
+        let mut ranges = Vec::with_capacity(((size + CHUNK_SIZE - 1) / CHUNK_SIZE) as usize);
+        let mut start = 0;
+
+        while start < size {
+            let end = (start + CHUNK_SIZE).min(size) - 1;  // end is inclusive
+            ranges.push((start, end));
+            start = end + 1;
+        }
+
+        ranges
+    }
+
+    pub async fn start_download<P: ProgressSink>(
+        &self,
+        progress: &mut P,
+    ) -> Result<(), reqwest::Error> {
         // - compute ranges
         // - use a tokio semaphore to not go overboard with concurrency
 
-        const CHUNK_SIZE: usize = 10_000_000;
+        let dependencies = self
+            .products_client
+            .get_download_dependencies(&self.app_spec)
+            .await?;
 
         todo!();
     }
