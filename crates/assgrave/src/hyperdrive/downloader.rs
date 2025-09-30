@@ -1,7 +1,7 @@
 use crate::hyperdrive::remote::models::{Application, Package};
 use crate::hyperdrive::remote::{configure_headers, ProductsClient};
 use futures_util::StreamExt;
-use reqwest::header::{HeaderMap, RANGE};
+use reqwest::header::{HeaderMap, HeaderValue, RANGE, USER_AGENT};
 use reqwest::Client;
 use std::fs;
 use std::ops::Deref;
@@ -58,6 +58,8 @@ impl<'a> ApplicationDownloader<'a> {
         let mut headers = HeaderMap::new();
         configure_headers(&mut headers);
 
+        headers.insert(USER_AGENT, HeaderValue::from_static("Creative Cloud"));
+
         let client = Client::builder()
             .connect_timeout(Duration::from_secs(10))
             .timeout(Duration::from_secs(60))
@@ -102,34 +104,40 @@ impl<'a> ApplicationDownloader<'a> {
         pkg: &Package,
         out_dir: &PathBuf,
         progress: Arc<P>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let pkg = Arc::new(pkg);
+    ) -> anyhow::Result<()> {
+        let pkg = Arc::new(pkg.clone()); // or keep &Package and clone fields you need
         let ranges = self.compute_ranges_for_pkg(&pkg);
         let mut tasks: Vec<JoinHandle<anyhow::Result<()>>> = Vec::with_capacity(ranges.len());
         let file_size = pkg.download_size;
 
-        // Product
-        //  - SAPCode (application)
-        //    - package files
+        let file_name = PathBuf::from_str(pkg.path.as_str())
+            .unwrap()
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned();
 
-        let file_name = pkg.full_package_name.as_ref().unwrap().clone();
-        let file_path = out_dir.join(PathBuf::from_str(&file_name)?);
+        let file_path = out_dir.join(&file_name);
+        // parent should exist; caller ensures create_dir_all
         let file = OpenOptions::new()
             .create(true)
             .write(true)
             .read(true)
-            .open(file_path)
+            .open(&file_path)
             .await?;
         file.set_len(file_size as u64).await?;
         let file = Arc::new(Mutex::new(file));
 
-        const MAX_CONCURRENCY: usize = 8;
+        const MAX_CONCURRENCY: usize = 4;
 
         let file_name = Arc::new(file_name);
         let url = Arc::new(format!("{}{}", CDN_SECURE, pkg.path));
         let semaphore = Arc::new(Semaphore::new(MAX_CONCURRENCY));
         let client = Arc::new(self.client.clone());
-        let progress = Arc::new(progress);
+
+        // Emit start once per file (not per chunk)
+        progress.on_file_start(&file_name, file_size as usize);
 
         for (start, end) in ranges {
             let permit = semaphore.clone().acquire_owned().await?;
@@ -138,20 +146,29 @@ impl<'a> ApplicationDownloader<'a> {
             let file = file.clone();
             let progress = progress.clone();
             let file_name = file_name.clone();
-            // let pkg = pkg.clone();
 
-            progress.on_file_start(&file_name, file_size as usize);
-            tasks.push(tokio::spawn(
-                async move {
-                    let _p = permit;
+            tasks.push(tokio::spawn(async move {
+                let _permit = permit;
+                let mut attempts = 0;
+
+                loop {
 
                     let resp = client
                         .get(&*url)
                         .header(RANGE, format!("bytes={}-{}", start, end))
                         .send()
-                        .await?
-                        .error_for_status()?;
+                        .await;
 
+                    if let Err(req_err) = resp {
+                        println!("PROBLEM: {}, {} to {}", url, start, end);
+                        if attempts == 5 {
+                            return Err(req_err.into());
+                        }
+                        attempts += 1;
+                        continue
+                    }
+
+                    let resp = resp.unwrap();
                     let mut stream = resp.bytes_stream();
 
                     let mut buf = Vec::with_capacity((end - start + 1) as usize);
@@ -166,9 +183,10 @@ impl<'a> ApplicationDownloader<'a> {
                     f.write_all(&buf).await?;
                     f.flush().await?;
 
-                    Ok(())
-                },
-            ));
+                    break;
+                }
+                Ok(())
+            }));
         }
 
         for t in tasks {
@@ -182,9 +200,8 @@ impl<'a> ApplicationDownloader<'a> {
     pub async fn start_download<P: ProgressSink + 'static>(
         &self,
         progress: P,
-    ) -> Result<(), reqwest::Error> {
-        // - compute ranges
-        // - use a tokio semaphore to not go overboard with concurrency
+    ) -> anyhow::Result<()> {
+        self.prepare_directory();
 
         let dependencies = self
             .products_client
@@ -194,21 +211,20 @@ impl<'a> ApplicationDownloader<'a> {
         let progress = Arc::new(progress);
 
         let main_application_dir = self.output_dir.join(&self.app_spec.sap_code);
-        fs::create_dir(main_application_dir.clone())
-            .expect("Failed to create main application directory.");
+        std::fs::create_dir_all(&main_application_dir)?; // ensure exists
 
-        // todo: filter application packages based on download configuration.
-        // todo: error handling.
-
+        // main packages
         for pkg in &self.app_spec.packages.package {
-            self.exec_download_for_pkg(pkg, &main_application_dir, progress.clone()).await;
+            self.exec_download_for_pkg(pkg, &main_application_dir, progress.clone()).await?;
         }
 
+        // dependencies
         if let Some(deps) = dependencies {
             for dep in &deps {
-                let application_dir = &self.output_dir.join(&dep.sap_code);
+                let application_dir = self.output_dir.join(&dep.sap_code);
+                fs::create_dir_all(&application_dir)?; // ensure exists
                 for pkg in &dep.packages.package {
-                    self.exec_download_for_pkg(pkg, &application_dir, progress.clone()).await;
+                    self.exec_download_for_pkg(pkg, &application_dir, progress.clone()).await?;
                 }
             }
         }
@@ -216,3 +232,50 @@ impl<'a> ApplicationDownloader<'a> {
         Ok(())
     }
 }
+
+
+mod tests {
+    use std::path::PathBuf;
+    use std::str::FromStr;
+    use crate::hyperdrive::downloader::{ApplicationDownloader, DownloadConfiguration, NoopProgress, ProgressSink};
+    use crate::hyperdrive::remote::{ProductPlatform, ProductsClient};
+
+    struct TestConsoleProgress {}
+    impl ProgressSink for TestConsoleProgress {
+        fn on_file_start(&self, file: &str, total_size: usize) {
+            println!("Started: {} with {} bytes", file, total_size);
+        }
+
+        fn on_range_done(&self, file: &str, delta: usize) {
+            println!("Downloaded {} bytes for {}", delta, file);
+        }
+
+        fn on_file_done(&self, file: &str) {
+            println!("Finished downloading {}!", file);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_application_downloader() {
+        let pc = ProductsClient::new(ProductPlatform::MacOSUniversal).await.unwrap();
+
+        let path = PathBuf::from_str("/Users/angelodeluca/RustroverProjects/assgrave/dl_test")
+            .unwrap();
+
+        let channel = pc.get_reduced_channel("CCM").unwrap();
+        let product = channel.index.get_latest("PHSP").unwrap();
+
+        let application = pc.get_application(product.build_guid.unwrap()).await.unwrap();
+
+        let dl_cfg = DownloadConfiguration::default();
+
+        let downloader = ApplicationDownloader::new(path, &application, &pc, dl_cfg)
+            .await.unwrap();
+
+        let progress = TestConsoleProgress{};
+
+        downloader.start_download(progress).await.unwrap();
+    }
+
+}
+

@@ -88,7 +88,7 @@ pub struct ProductsClient {
 }
 
 impl ProductsClient {
-    pub async fn new(platform: &ProductPlatform) -> Result<Self, reqwest::Error> {
+    pub async fn new(platform: ProductPlatform) -> Result<Self, reqwest::Error> {
         let products = get_products(&platform).await?;
 
         let mut headers = HeaderMap::new();
@@ -103,7 +103,7 @@ impl ProductsClient {
         })
     }
 
-    async fn get_application(&self, build_guid: &str) -> Result<Application, reqwest::Error> {
+    pub async fn get_application(&self, build_guid: &str) -> Result<Application, reqwest::Error> {
         const URL: &str = "https://cdn-ffc.oobesaas.adobe.com/core/v3/applications";
 
         let r = self
@@ -174,7 +174,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_products_client() {
-        let mut client = ProductsClient::new(&ProductPlatform::MacOSUniversal).await;
+        let mut client = ProductsClient::new(ProductPlatform::MacOSUniversal).await;
 
         let mut client = client.unwrap();
         let ch = client.get_reduced_channel("CCM").unwrap();
