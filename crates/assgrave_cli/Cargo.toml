@@ -6,3 +6,7 @@ edition = "2024"
 [dependencies]
 assgrave = {path = "../assgrave"}
 clap = {version = "4.5.47", features = ["derive"]}
+inquire = "0.9.1"
+anyhow = "1.0.100"
+console = "0.16.1"
+textwrap = "0.16.2"
