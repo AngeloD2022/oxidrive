@@ -129,7 +129,7 @@ impl<'a> ApplicationDownloader<'a> {
         file.set_len(file_size as u64).await?;
         let file = Arc::new(Mutex::new(file));
 
-        const MAX_CONCURRENCY: usize = 4;
+        const MAX_CONCURRENCY: usize = 2;
 
         let file_name = Arc::new(file_name);
         let url = Arc::new(format!("{}{}", CDN_SECURE, pkg.path));
@@ -161,6 +161,9 @@ impl<'a> ApplicationDownloader<'a> {
 
                     if let Err(req_err) = resp {
                         println!("PROBLEM: {}, {} to {}", url, start, end);
+                        // fixme: Decoding the response seems to be a reoccurring problem.
+                        //  Apparently, some kind of better retrying is needed.
+                        //  Only way to mitigate it currently is by reducing the parallelism.
                         if attempts == 5 {
                             return Err(req_err.into());
                         }
@@ -263,7 +266,7 @@ mod tests {
             .unwrap();
 
         let channel = pc.get_reduced_channel("CCM").unwrap();
-        let product = channel.index.get_latest("PHSP").unwrap();
+        let product = channel.index.get_latest("AEFT").unwrap();
 
         let application = pc.get_application(product.build_guid.unwrap()).await.unwrap();
 
