@@ -3,6 +3,8 @@ use models::*;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
+mod condition;
+mod downloader;
 mod index;
 pub mod models;
 

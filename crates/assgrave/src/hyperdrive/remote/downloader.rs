@@ -1,8 +1,8 @@
 use crate::hyperdrive::remote::models::{Application, Package, PackageKind};
-use crate::hyperdrive::remote::{configure_headers, ProductsClient};
+use crate::hyperdrive::remote::{ProductsClient, configure_headers};
 use futures_util::StreamExt;
-use reqwest::header::{HeaderMap, HeaderValue, RANGE, USER_AGENT};
 use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderValue, RANGE, USER_AGENT};
 use std::fs;
 use std::ops::Deref;
 use std::path::PathBuf;
@@ -26,7 +26,6 @@ pub trait ProgressSink: Send + Sync {
 pub struct NoopProgress;
 impl ProgressSink for NoopProgress {}
 
-
 pub struct DownloadConfiguration {
     locale: String,
 }
@@ -38,7 +37,6 @@ impl Default for DownloadConfiguration {
         }
     }
 }
-
 
 pub struct ApplicationDownloader<'a> {
     output_dir: PathBuf,
@@ -152,7 +150,6 @@ impl<'a> ApplicationDownloader<'a> {
                 let mut attempts = 0;
 
                 loop {
-
                     let resp = client
                         .get(&*url)
                         .header(RANGE, format!("bytes={}-{}", start, end))
@@ -168,7 +165,7 @@ impl<'a> ApplicationDownloader<'a> {
                             return Err(req_err.into());
                         }
                         attempts += 1;
-                        continue
+                        continue;
                     }
 
                     let resp = resp.unwrap();
@@ -235,7 +232,8 @@ impl<'a> ApplicationDownloader<'a> {
 
         // main packages
         for pkg in self.filter_pkgs_for_config(&self.app_spec.packages.package) {
-            self.exec_download_for_pkg(pkg, &main_application_dir, progress.clone()).await?;
+            self.exec_download_for_pkg(pkg, &main_application_dir, progress.clone())
+                .await?;
         }
 
         // dependencies
@@ -244,7 +242,8 @@ impl<'a> ApplicationDownloader<'a> {
                 let application_dir = self.output_dir.join(&dep.sap_code);
                 fs::create_dir_all(&application_dir)?; // ensure exists
                 for pkg in self.filter_pkgs_for_config(&dep.packages.package) {
-                    self.exec_download_for_pkg(pkg, &application_dir, progress.clone()).await?;
+                    self.exec_download_for_pkg(pkg, &application_dir, progress.clone())
+                        .await?;
                 }
             }
         }
@@ -253,12 +252,13 @@ impl<'a> ApplicationDownloader<'a> {
     }
 }
 
-
 mod tests {
+    use crate::hyperdrive::remote::downloader::{
+        ApplicationDownloader, DownloadConfiguration, NoopProgress, ProgressSink,
+    };
+    use crate::hyperdrive::remote::{ProductPlatform, ProductsClient};
     use std::path::PathBuf;
     use std::str::FromStr;
-    use crate::hyperdrive::downloader::{ApplicationDownloader, DownloadConfiguration, NoopProgress, ProgressSink};
-    use crate::hyperdrive::remote::{ProductPlatform, ProductsClient};
 
     struct TestConsoleProgress {}
     impl ProgressSink for TestConsoleProgress {
@@ -277,25 +277,29 @@ mod tests {
 
     #[tokio::test]
     async fn test_application_downloader() {
-        let pc = ProductsClient::new(ProductPlatform::MacOSUniversal).await.unwrap();
-
-        let path = PathBuf::from_str("/Users/angelodeluca/RustroverProjects/assgrave/dl_test")
+        let pc = ProductsClient::new(ProductPlatform::MacOSUniversal)
+            .await
             .unwrap();
+
+        let path =
+            PathBuf::from_str("/Users/angelodeluca/RustroverProjects/assgrave/dl_test").unwrap();
 
         let channel = pc.get_reduced_channel("CCM").unwrap();
         let product = channel.index.get_latest("AEFT").unwrap();
 
-        let application = pc.get_application(product.build_guid.unwrap()).await.unwrap();
+        let application = pc
+            .get_application(product.build_guid.unwrap())
+            .await
+            .unwrap();
 
         let dl_cfg = DownloadConfiguration::default();
 
         let downloader = ApplicationDownloader::new(path, &application, &pc, dl_cfg)
-            .await.unwrap();
+            .await
+            .unwrap();
 
-        let progress = TestConsoleProgress{};
+        let progress = TestConsoleProgress {};
 
         downloader.start_download(progress).await.unwrap();
     }
-
 }
-
