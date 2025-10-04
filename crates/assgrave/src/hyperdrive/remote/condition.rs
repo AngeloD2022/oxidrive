@@ -14,6 +14,7 @@ struct Identifier(String);
 #[derive(Eq, PartialEq)]
 struct Value(String);
 
+#[derive(Copy, Clone)]
 enum Operation {
     Lt,
     Gt,
@@ -31,12 +32,21 @@ impl Operation {
             Operation::Or | Operation::And => false,
         }
     }
+
+    pub fn is_ineq(&self) -> bool {
+        match self {
+            Operation::Geq | Operation::Gt | Operation::Lt | Operation::Leq => true,
+            _ => false,
+        }
+    }
 }
+
 
 enum ConditionToken {
     Ident(String),
     Val(String),
     Op(Operation),
+    Eof,
 }
 
 struct ConditionLexer {
@@ -207,8 +217,76 @@ impl ConditionParser {
         Self { tokens, pos: 0 }
     }
 
-    pub fn parse(&mut self) -> Result<ExpressionNode, usize> {
-        todo!()
+    fn advance(&mut self) {
+        self.pos += 1;
+    }
+
+    fn current_token(&self) -> &ConditionToken {
+        self.tokens.get(self.pos).unwrap_or(&ConditionToken::Eof)
+    }
+
+    fn parse_or(&mut self) -> Result<ExpressionNode, String> {
+        let mut left = self.parse_and()?;
+
+        while let ConditionToken::Op(Operation::Or) = self.current_token() {
+            self.advance();
+            let right = self.parse_and()?;
+            left = ExpressionNode::Or(Box::new(left), Box::new(right))
+        }
+
+        Ok(left)
+    }
+
+    fn parse_and(&mut self) -> Result<ExpressionNode, String> {
+        let mut left = self.parse_comparison()?;
+
+        while let ConditionToken::Op(Operation::And) = self.current_token() {
+            self.advance();
+            let right = self.parse_comparison()?;
+            left = ExpressionNode::And(Box::new(left), Box::new(right))
+        }
+
+        Ok(left)
+    }
+
+    fn parse_comparison(&mut self) -> Result<ExpressionNode, String> {
+        let token = self.current_token().clone();
+
+        let ident = match token {
+            ConditionToken::Ident(s) => s.clone(),
+            _ => return Err("Expected identifier".to_string()),
+        };
+        self.advance();
+
+        let op_token = self.current_token().clone();
+        let operation = match op_token {
+            ConditionToken::Op(op) => op.clone(),
+            _ => return Err("Expected operator".to_string()),
+        };
+        self.advance();
+
+        let val_token = self.current_token().clone();
+        let v = match val_token {
+            ConditionToken::Val(s) => s.clone(),
+            _ => return Err("Expected value".to_string()),
+        };
+        self.advance();
+
+        if !operation.is_cmp() {
+            return Err("Invalid operator".to_string());
+        }
+
+        let expr = if operation.is_ineq() {
+            ExpressionNode::Inequality(Identifier(ident), operation, Value(v))
+        } else {
+            ExpressionNode::Equality(Identifier(ident), Value(v))
+        };
+
+        Ok(expr)
+    }
+
+    pub fn parse(&mut self) -> Result<ExpressionNode, String> {
+        self.parse_or()
     }
 }
 
@@ -232,7 +310,7 @@ impl Condition {
 }
 
 mod tests {
-    use crate::hyperdrive::remote::condition::ConditionLexer;
+    use crate::hyperdrive::remote::condition::{ConditionLexer, ConditionParser};
 
     #[test]
     fn test_lexer() {
@@ -243,5 +321,20 @@ mod tests {
         let input = "[OSProcessorFamily]==64-bit&&[OSVersion]<10.14 &&[OSVersion]>=10.13";
         let mut lexer = ConditionLexer::new(&input);
         let tokens = lexer.tokenize().unwrap();
+    }
+
+    #[test]
+    fn test_parser() {
+        let input = "[installLanguage]==cs_CZ||[installLanguage]==da_DK||[installLanguage]==de_DE||[installLanguage]==en_GB||[installLanguage]==en_US||[installLanguage]==es_ES||[installLanguage]==es_MX||[installLanguage]==fi_FI||[installLanguage]==fr_CA||[installLanguage]==fr_FR||[installLanguage]==hu_HU||[installLanguage]==it_IT||[installLanguage]==nb_NO||[installLanguage]==nl_NL||[installLanguage]==pl_PL||[installLanguage]==pt_BR||[installLanguage]==ru_RU||[installLanguage]==sv_SE||[installLanguage]==tr_TR||[installLanguage]==uk_UA";
+        let mut lexer = ConditionLexer::new(&input);
+        let tokens = lexer.tokenize().unwrap();
+        let mut parser = ConditionParser::new(tokens);
+        let expr = parser.parse().unwrap();
+
+        let input = "[OSProcessorFamily]==64-bit&&[OSVersion]<10.14 &&[OSVersion]>=10.13";
+        let mut lexer = ConditionLexer::new(&input);
+        let tokens = lexer.tokenize().unwrap();
+        let mut parser = ConditionParser::new(tokens);
+        let expr = parser.parse().unwrap();
     }
 }
