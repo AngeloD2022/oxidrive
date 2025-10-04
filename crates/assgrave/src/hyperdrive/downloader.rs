@@ -1,4 +1,4 @@
-use crate::hyperdrive::remote::models::{Application, Package};
+use crate::hyperdrive::remote::models::{Application, Package, PackageKind};
 use crate::hyperdrive::remote::{configure_headers, ProductsClient};
 use futures_util::StreamExt;
 use reqwest::header::{HeaderMap, HeaderValue, RANGE, USER_AGENT};
@@ -200,6 +200,23 @@ impl<'a> ApplicationDownloader<'a> {
         Ok(())
     }
 
+    fn filter_pkgs_for_config(&self, pkgs: &'a [Package]) -> impl Iterator<Item = &Package> {
+        pkgs.iter().filter(|pkg| {
+            if let Some(pkg_type) = &pkg.package_type {
+                match pkg_type {
+                    PackageKind::Core | PackageKind::Resources => return true,
+                    _ => {}
+                }
+            }
+            if let Some(condition) = &pkg.condition {
+                println!("Condition: {}", condition);
+                condition.contains(&self.download_cfg.locale)
+            } else {
+                true
+            }
+        })
+    }
+
     pub async fn start_download<P: ProgressSink + 'static>(
         &self,
         progress: P,
@@ -214,10 +231,10 @@ impl<'a> ApplicationDownloader<'a> {
         let progress = Arc::new(progress);
 
         let main_application_dir = self.output_dir.join(&self.app_spec.sap_code);
-        std::fs::create_dir_all(&main_application_dir)?; // ensure exists
+        fs::create_dir_all(&main_application_dir)?; // ensure exists
 
         // main packages
-        for pkg in &self.app_spec.packages.package {
+        for pkg in self.filter_pkgs_for_config(&self.app_spec.packages.package) {
             self.exec_download_for_pkg(pkg, &main_application_dir, progress.clone()).await?;
         }
 
@@ -226,7 +243,7 @@ impl<'a> ApplicationDownloader<'a> {
             for dep in &deps {
                 let application_dir = self.output_dir.join(&dep.sap_code);
                 fs::create_dir_all(&application_dir)?; // ensure exists
-                for pkg in &dep.packages.package {
+                for pkg in self.filter_pkgs_for_config(&dep.packages.package) {
                     self.exec_download_for_pkg(pkg, &application_dir, progress.clone()).await?;
                 }
             }

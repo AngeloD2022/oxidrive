@@ -6,6 +6,7 @@ use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 mod index;
 pub mod models;
 
+#[derive(Copy, Clone)]
 pub enum ProductPlatform {
     MacAarch64,
     MacIntel64,
@@ -84,6 +85,7 @@ pub async fn get_products(platform: &ProductPlatform) -> Result<Products, reqwes
 pub struct ProductsClient {
     products: Products,
     client: Client,
+    platform: ProductPlatform,
     // application_cache: HashMap<String, Application>,
 }
 
@@ -99,8 +101,12 @@ impl ProductsClient {
         Ok(ProductsClient {
             products,
             client,
-            // application_cache: HashMap::new(),
+            platform,
         })
+    }
+
+    pub fn platform(&self) -> ProductPlatform {
+        self.platform.clone()
     }
 
     pub async fn get_application(&self, build_guid: &str) -> Result<Application, reqwest::Error> {
