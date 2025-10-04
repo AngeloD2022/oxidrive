@@ -1,12 +1,5 @@
-// Known variables:
-//  installLanguage
-//  OSVersion: Version
-//  OSProcessorFamily: String
-//  OSArchitectire: String
-//  IsEnterpriseDeployment: Bool
-//
-
 use std::collections::HashMap;
+use std::str::FromStr;
 
 #[derive(Eq, PartialEq)]
 struct Identifier(String);
@@ -40,7 +33,6 @@ impl Operation {
         }
     }
 }
-
 
 enum ConditionToken {
     Ident(String),
@@ -287,6 +279,91 @@ impl ConditionParser {
 
     pub fn parse(&mut self) -> Result<ExpressionNode, String> {
         self.parse_or()
+    }
+}
+
+enum EvalValue {
+    Version(String),
+    String(String),
+    Bool(bool),
+    Number(i32),
+}
+
+impl EvalValue {
+    pub fn equals(&self, b: &Self) -> bool {
+        match (self, b) {
+            (EvalValue::String(a), EvalValue::String(b)) => a == b,
+            (EvalValue::Bool(a), EvalValue::Bool(b)) => a == b,
+            (EvalValue::Version(a), EvalValue::Version(b)) => a == b,
+            (EvalValue::Number(a), EvalValue::Number(b)) => a == b,
+            _ => false,
+        }
+    }
+
+    pub fn compare(&self, op: &Operation, b: &Self) {
+        todo!()
+    }
+
+    pub fn coerce_str(&self, value: &str) -> Self {
+        match self {
+            EvalValue::Version(_) => EvalValue::Version(value.to_string()),
+            EvalValue::String(_) => EvalValue::String(value.to_string()),
+            EvalValue::Bool(_) => EvalValue::Bool(value == "true"),
+            EvalValue::Number(_) => EvalValue::Number(i32::from_str(value).unwrap()),
+        }
+    }
+}
+
+struct ConditionEvaluator {
+    variables: HashMap<String, EvalValue>,
+}
+
+impl ConditionEvaluator {
+    pub fn new(vars: HashMap<String, String>) -> Self {
+        let mut vs = HashMap::new();
+        for (ident, value) in vars {
+            // Known variables:
+            //  installLanguage: String
+            //  OSVersion: Version
+            //  OSProcessorFamily: String
+            //  OSArchitectire: String
+            //  IsEnterpriseDeployment: Bool
+
+            let val = match ident.as_str() {
+                "installLanguage" | "OSProcessorFamily" | "OSArchitecture" => {
+                    EvalValue::String(value)
+                }
+                "OSVersion" => EvalValue::Version(value),
+                "IsEnterpriseDeployment" => EvalValue::Bool(value == "true"),
+                _ => EvalValue::String(value),
+            };
+
+            vs.insert(ident, val);
+        }
+
+        Self { variables: vs }
+    }
+
+    fn get_var(&self, ident: &str) -> Option<&EvalValue> {
+        self.variables.get(&ident.to_string())
+    }
+
+    pub fn evaluate(&self, expression: &ExpressionNode) -> bool {
+        match expression {
+            ExpressionNode::And(left, right) => self.evaluate(left) && self.evaluate(right),
+            ExpressionNode::Or(left, right) => self.evaluate(left) || self.evaluate(right),
+            ExpressionNode::Equality(ident, value) => {
+                if let Some(var) = self.get_var(&ident.0) {
+                    let b = var.coerce_str(&value.0);
+                    var.equals(&b)
+                } else {
+                    false
+                }
+            }
+            ExpressionNode::Inequality(a, op, b) => {
+                todo!()
+            }
+        }
     }
 }
 
