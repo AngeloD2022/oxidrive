@@ -282,6 +282,31 @@ impl ConditionParser {
     }
 }
 
+fn compare_vers(a: &str, b: &str, op: &Operation) -> bool {
+    let a_parts: Vec<u32> = a.split('.').filter_map(|s| s.parse().ok()).collect();
+    let b_parts: Vec<u32> = b.split('.').filter_map(|s| s.parse().ok()).collect();
+
+    let max_len = a_parts.len().max(b_parts.len());
+
+    for i in 0..max_len {
+        let a_val = a_parts.get(i).copied().unwrap_or(0);
+        let b_val = b_parts.get(i).copied().unwrap_or(0);
+
+        if a_val != b_val {
+            return match op {
+                Operation::Lt => a_val < b_val,
+                Operation::Gt => a_val > b_val,
+                Operation::Geq => a_val >= b_val,
+                Operation::Leq => a_val <= b_val,
+                Operation::Eq => a_val == b_val,
+                _ => false
+            }
+        }
+    }
+
+    matches!(op, Operation::Eq | Operation::Leq | Operation::Geq)
+}
+
 enum EvalValue {
     Version(String),
     String(String),
@@ -300,8 +325,35 @@ impl EvalValue {
         }
     }
 
-    pub fn compare(&self, op: &Operation, b: &Self) {
-        todo!()
+    pub fn compare(&self, op: &Operation, b: &Self) -> Result<bool, String> {
+        match (self, b) {
+            (EvalValue::Version(a), EvalValue::Version(b)) => {
+                Ok(compare_vers(a, b, op))
+            },
+            (EvalValue::Number(a), EvalValue::Number(b)) => {
+                Ok(match op {
+                    Operation::Lt => a < b,
+                    Operation::Gt => a > b,
+                    Operation::Geq => a >= b,
+                    Operation::Leq => a <= b,
+                    Operation::Eq => a == b,
+                    _ => false
+                })
+            },
+            (EvalValue::String(a), EvalValue::String(b)) => {
+                match op {
+                    Operation::Eq => Ok(a == b),
+                    _ => Err("Strings only support equality".to_string())
+                }
+            }
+            (EvalValue::Bool(a), EvalValue::Bool(b)) => {
+                match op {
+                    Operation::Eq => Ok(a == b),
+                    _ => Err("Bools only support equality".to_string())
+                }
+            }
+            _ => Err("Type mismatch in comparison".to_string())
+        }
     }
 
     pub fn coerce_str(&self, value: &str) -> Self {
@@ -316,10 +368,11 @@ impl EvalValue {
 
 struct ConditionEvaluator {
     variables: HashMap<String, EvalValue>,
+    strict: bool,
 }
 
 impl ConditionEvaluator {
-    pub fn new(vars: HashMap<String, String>) -> Self {
+    pub fn new(vars: HashMap<String, String>, strict_mode: bool) -> Self {
         let mut vs = HashMap::new();
         for (ident, value) in vars {
             // Known variables:
@@ -341,27 +394,36 @@ impl ConditionEvaluator {
             vs.insert(ident, val);
         }
 
-        Self { variables: vs }
+        Self { variables: vs, strict: strict_mode }
     }
 
     fn get_var(&self, ident: &str) -> Option<&EvalValue> {
         self.variables.get(&ident.to_string())
     }
 
-    pub fn evaluate(&self, expression: &ExpressionNode) -> bool {
+    pub fn evaluate(&self, expression: &ExpressionNode) -> Result<bool, String> {
         match expression {
-            ExpressionNode::And(left, right) => self.evaluate(left) && self.evaluate(right),
-            ExpressionNode::Or(left, right) => self.evaluate(left) || self.evaluate(right),
+            ExpressionNode::And(left, right) => Ok(self.evaluate(left)? && self.evaluate(right)?),
+            ExpressionNode::Or(left, right) => Ok(self.evaluate(left)? || self.evaluate(right)?),
             ExpressionNode::Equality(ident, value) => {
                 if let Some(var) = self.get_var(&ident.0) {
                     let b = var.coerce_str(&value.0);
-                    var.equals(&b)
+                    Ok(var.equals(&b))
+                } else if !self.strict {
+                    Ok(true)
                 } else {
-                    false
+                    Err(format!("Undeclared identifier: {}", ident.0))
                 }
             }
-            ExpressionNode::Inequality(a, op, b) => {
-                todo!()
+            ExpressionNode::Inequality(ident, op, val) => {
+                if let Some(var) = self.get_var(&ident.0) {
+                    let b = var.coerce_str(&val.0);
+                    var.compare(op, &b)
+                } else if !self.strict {
+                    Ok(true)
+                } else {
+                    Err(format!("Undeclared identifier: {}", ident.0))
+                }
             }
         }
     }
@@ -383,7 +445,9 @@ impl Condition {
         todo!()
     }
 
-    pub fn evaluate(&self, input: HashMap<String, String>) {}
+    pub fn evaluate(&self, input: HashMap<String, String>) {
+
+    }
 }
 
 mod tests {
