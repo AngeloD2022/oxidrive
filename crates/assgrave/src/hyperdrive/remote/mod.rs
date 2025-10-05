@@ -7,6 +7,7 @@ mod condition;
 mod downloader;
 mod index;
 pub mod models;
+mod utils;
 
 #[derive(Copy, Clone)]
 pub enum ProductPlatform {

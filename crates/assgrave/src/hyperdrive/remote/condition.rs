@@ -192,7 +192,7 @@ impl ConditionLexer {
     }
 }
 
-enum ExpressionNode {
+pub enum ExpressionNode {
     And(Box<ExpressionNode>, Box<ExpressionNode>),
     Or(Box<ExpressionNode>, Box<ExpressionNode>),
     Equality(Identifier, Value),
@@ -366,7 +366,7 @@ impl EvalValue {
     }
 }
 
-struct ConditionEvaluator {
+pub struct ConditionEvaluator {
     variables: HashMap<String, EvalValue>,
     strict: bool,
 }
@@ -429,39 +429,21 @@ impl ConditionEvaluator {
     }
 }
 
-pub struct Condition {
-    root: ExpressionNode,
-}
+pub fn parse_condition(expr: &str) -> Result<ExpressionNode, String> {
+    let mut lexer = ConditionLexer::new(expr);
+    let tokens = lexer.tokenize()
+        .map_err(|f| format!("Lex error: pos {}", f))?;
 
-impl Condition {
-    pub fn from(&self, expr: &str) -> Self {
-        // Parse the expression into the IR.
-        // The assumption is that the input expression is satisfiable; I'm not gonna fucking include z3 for this.
+    let mut parser = ConditionParser::new(tokens);
 
-        todo!()
-    }
-
-    pub fn variables(&self) -> Vec<Identifier> {
-        todo!()
-    }
-
-    pub fn evaluate(&self, input: HashMap<String, String>) {
-
-    }
-}
-
-macro_rules! strmap {
-    ($($key:expr => $val:expr),* $(,)?) => {{
-        let mut map = HashMap::new();
-        $(map.insert($key.to_string(), $val.to_string());)*
-        map
-    }};
+    parser.parse()
 }
 
 mod tests {
     use crate::hyperdrive::remote::condition::{ConditionEvaluator, ConditionLexer, ConditionParser};
     use std::collections::HashMap;
-    
+    use crate::strmap;
+
     #[test]
     fn test_lexer() {
         let input = "[installLanguage]==cs_CZ||[installLanguage]==da_DK||[installLanguage]==de_DE||[installLanguage]==en_GB||[installLanguage]==en_US||[installLanguage]==es_ES||[installLanguage]==es_MX||[installLanguage]==fi_FI||[installLanguage]==fr_CA||[installLanguage]==fr_FR||[installLanguage]==hu_HU||[installLanguage]==it_IT||[installLanguage]==nb_NO||[installLanguage]==nl_NL||[installLanguage]==pl_PL||[installLanguage]==pt_BR||[installLanguage]==ru_RU||[installLanguage]==sv_SE||[installLanguage]==tr_TR||[installLanguage]==uk_UA";

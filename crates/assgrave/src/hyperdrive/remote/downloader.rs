@@ -13,6 +13,9 @@ use tokio::fs::OpenOptions;
 use tokio::io::{AsyncSeekExt, AsyncWriteExt};
 use tokio::sync::{Mutex, Semaphore};
 use tokio::task::JoinHandle;
+use crate::hyperdrive::remote::condition::{parse_condition, ConditionEvaluator};
+use crate::strmap;
+use std::collections::HashMap;
 
 const CDN_SECURE: &str = "https://ccmdls.adobe.com";
 
@@ -33,7 +36,7 @@ pub struct DownloadConfiguration {
 impl Default for DownloadConfiguration {
     fn default() -> Self {
         Self {
-            locale: "en-US".to_string(),
+            locale: "en_US".to_string(),
         }
     }
 }
@@ -198,7 +201,16 @@ impl<'a> ApplicationDownloader<'a> {
     }
 
     fn filter_pkgs_for_config(&self, pkgs: &'a [Package]) -> impl Iterator<Item = &Package> {
-        pkgs.iter().filter(|pkg| {
+
+        // todo: include more details here.
+        let mut vars = strmap! {
+            "installLanguage" => self.download_cfg.locale,
+            "OSProcessorFamily" => "64-bit",
+            "OSArchitecture" => "arm64"
+        };
+        let cev = ConditionEvaluator::new(vars, false);
+
+        let filtered: Vec<_> = pkgs.iter().filter(|pkg| {
             if let Some(pkg_type) = &pkg.package_type {
                 match pkg_type {
                     PackageKind::Core | PackageKind::Resources => return true,
@@ -206,12 +218,15 @@ impl<'a> ApplicationDownloader<'a> {
                 }
             }
             if let Some(condition) = &pkg.condition {
-                println!("Condition: {}", condition);
-                condition.contains(&self.download_cfg.locale)
+                println!("Parsing condition: {}", condition);
+                let parsed = parse_condition(condition).unwrap();
+                cev.evaluate(&parsed).unwrap()
             } else {
                 true
             }
-        })
+        }).collect();
+
+        filtered.into_iter()
     }
 
     pub async fn start_download<P: ProgressSink + 'static>(
