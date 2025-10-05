@@ -490,21 +490,28 @@ mod tests {
 
     #[test]
     fn test_eval() {
+        let input = "[installLanguage]==cs_CZ||[installLanguage]==da_DK||[installLanguage]==de_DE||[installLanguage]==en_GB||[installLanguage]==en_US||[installLanguage]==es_ES||[installLanguage]==es_MX||[installLanguage]==fi_FI||[installLanguage]==fr_CA||[installLanguage]==fr_FR||[installLanguage]==hu_HU||[installLanguage]==it_IT||[installLanguage]==nb_NO||[installLanguage]==nl_NL||[installLanguage]==pl_PL||[installLanguage]==pt_BR||[installLanguage]==ru_RU||[installLanguage]==sv_SE||[installLanguage]==tr_TR||[installLanguage]==uk_UA";
+        let mut lexer = ConditionLexer::new(&input);
+        let tokens = lexer.tokenize().unwrap();
+        let mut parser = ConditionParser::new(tokens);
+        let expr1 = parser.parse().unwrap();
+
         let input = "[OSProcessorFamily]==64-bit&&[OSVersion]<10.14 &&[OSVersion]>=10.13";
         let mut lexer = ConditionLexer::new(&input);
         let tokens = lexer.tokenize().unwrap();
         let mut parser = ConditionParser::new(tokens);
-        let expr = parser.parse().unwrap();
+        let expr2 = parser.parse().unwrap();
 
         let vars = strmap! {
             "OSProcessorFamily" => "64-bit",
-            "OSVersion" => "10.13.24"
+            "OSVersion" => "10.13.5",
+            "installLanguage" => "en_US",
         };
-        
         let evaluator = ConditionEvaluator::new(vars, true);
-        let result = evaluator.evaluate(&expr).unwrap();
 
-        println!("{}", result);
+        let result1 = evaluator.evaluate(&expr1).unwrap();
+        let result2 = evaluator.evaluate(&expr2).unwrap();
 
+        println!("{} {}", result1, result2);
     }
 }
