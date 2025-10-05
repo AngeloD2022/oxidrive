@@ -16,6 +16,9 @@ use tokio::fs::OpenOptions;
 use tokio::io::{AsyncSeekExt, AsyncWriteExt};
 use tokio::sync::{Mutex, Semaphore};
 use tokio::task::JoinHandle;
+use crate::hyperdrive::remote::condition::{parse_condition, ConditionEvaluator};
+use crate::strmap;
+use std::collections::HashMap;
 
 const CDN_SECURE: &str = "https://ccmdls.adobe.com";
 

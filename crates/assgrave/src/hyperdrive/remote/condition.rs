@@ -445,7 +445,8 @@ mod tests {
 mod tests {
     use crate::hyperdrive::remote::condition::{ConditionEvaluator, ConditionLexer, ConditionParser};
     use std::collections::HashMap;
-    
+    use crate::strmap;
+
     #[test]
     fn test_lexer() {
         let input = "[installLanguage]==cs_CZ||[installLanguage]==da_DK||[installLanguage]==de_DE||[installLanguage]==en_GB||[installLanguage]==en_US||[installLanguage]==es_ES||[installLanguage]==es_MX||[installLanguage]==fi_FI||[installLanguage]==fr_CA||[installLanguage]==fr_FR||[installLanguage]==hu_HU||[installLanguage]==it_IT||[installLanguage]==nb_NO||[installLanguage]==nl_NL||[installLanguage]==pl_PL||[installLanguage]==pt_BR||[installLanguage]==ru_RU||[installLanguage]==sv_SE||[installLanguage]==tr_TR||[installLanguage]==uk_UA";
