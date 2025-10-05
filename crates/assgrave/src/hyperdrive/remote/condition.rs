@@ -269,9 +269,9 @@ impl ConditionParser {
         }
 
         let expr = if operation.is_ineq() {
-            ExpressionNode::Inequality(Identifier(ident), operation, Value(v))
+            ExpressionNode::Inequality(Identifier(ident), operation, Value(v.trim().into()))
         } else {
-            ExpressionNode::Equality(Identifier(ident), Value(v))
+            ExpressionNode::Equality(Identifier(ident), Value(v.trim().into()))
         };
 
         Ok(expr)
@@ -450,9 +450,18 @@ impl Condition {
     }
 }
 
-mod tests {
-    use crate::hyperdrive::remote::condition::{ConditionLexer, ConditionParser};
+macro_rules! strmap {
+    ($($key:expr => $val:expr),* $(,)?) => {{
+        let mut map = HashMap::new();
+        $(map.insert($key.to_string(), $val.to_string());)*
+        map
+    }};
+}
 
+mod tests {
+    use crate::hyperdrive::remote::condition::{ConditionEvaluator, ConditionLexer, ConditionParser};
+    use std::collections::HashMap;
+    
     #[test]
     fn test_lexer() {
         let input = "[installLanguage]==cs_CZ||[installLanguage]==da_DK||[installLanguage]==de_DE||[installLanguage]==en_GB||[installLanguage]==en_US||[installLanguage]==es_ES||[installLanguage]==es_MX||[installLanguage]==fi_FI||[installLanguage]==fr_CA||[installLanguage]==fr_FR||[installLanguage]==hu_HU||[installLanguage]==it_IT||[installLanguage]==nb_NO||[installLanguage]==nl_NL||[installLanguage]==pl_PL||[installLanguage]==pt_BR||[installLanguage]==ru_RU||[installLanguage]==sv_SE||[installLanguage]==tr_TR||[installLanguage]==uk_UA";
@@ -477,5 +486,25 @@ mod tests {
         let tokens = lexer.tokenize().unwrap();
         let mut parser = ConditionParser::new(tokens);
         let expr = parser.parse().unwrap();
+    }
+
+    #[test]
+    fn test_eval() {
+        let input = "[OSProcessorFamily]==64-bit&&[OSVersion]<10.14 &&[OSVersion]>=10.13";
+        let mut lexer = ConditionLexer::new(&input);
+        let tokens = lexer.tokenize().unwrap();
+        let mut parser = ConditionParser::new(tokens);
+        let expr = parser.parse().unwrap();
+
+        let vars = strmap! {
+            "OSProcessorFamily" => "64-bit",
+            "OSVersion" => "10.13.24"
+        };
+        
+        let evaluator = ConditionEvaluator::new(vars, true);
+        let result = evaluator.evaluate(&expr).unwrap();
+
+        println!("{}", result);
+
     }
 }
