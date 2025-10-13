@@ -20,11 +20,12 @@ use tokio::task::JoinHandle;
 const CDN_SECURE: &str = "https://ccmdls.adobe.com";
 
 /// For the sake of exposing progress updates without coupling that logic to this crate.
+#[async_trait::async_trait]
 pub trait ProgressSink: Send + Sync {
-    fn on_file_start(&self, file: &str, total_size: usize) {}
-    fn on_range_done(&self, file: &str, delta: usize) {}
-    fn on_file_done(&self, file: &str) {}
-    fn on_error(&self, file: &str) {}
+    async fn on_file_start(&self, file: &str, total_size: usize) {}
+    async fn on_range_done(&self, file: &str, delta: usize) {}
+    async fn on_file_done(&self, file: &str) {}
+    async fn on_error(&self, file: &str) {}
 }
 pub struct NoopProgress;
 impl ProgressSink for NoopProgress {}
@@ -142,7 +143,7 @@ impl<'a> ApplicationDownloader<'a> {
         file.set_len(file_size as u64).await?;
         let file = Arc::new(Mutex::new(file));
 
-        const MAX_CONCURRENCY: usize = 2;
+        const MAX_CONCURRENCY: usize = 5;
 
         let file_name = Arc::new(file_name);
         let url = Arc::new(format!("{}{}", CDN_SECURE, pkg.path));
@@ -150,7 +151,7 @@ impl<'a> ApplicationDownloader<'a> {
         let client = Arc::new(self.client.clone());
 
         // Emit start once per file (not per chunk)
-        progress.on_file_start(&file_name, file_size as usize);
+        progress.on_file_start(&file_name, file_size as usize).await;
 
         for (start, end) in ranges {
             let permit = semaphore.clone().acquire_owned().await?;
@@ -163,6 +164,7 @@ impl<'a> ApplicationDownloader<'a> {
             tasks.push(tokio::spawn(async move {
                 let _permit = permit;
                 let mut attempts = 0;
+                const MAX_ATTEMPTS: usize = 5;
 
                 loop {
                     let resp = client
@@ -171,34 +173,49 @@ impl<'a> ApplicationDownloader<'a> {
                         .send()
                         .await;
 
-                    if let Err(req_err) = resp {
-                        println!("PROBLEM: {}, {} to {}", url, start, end);
-                        // fixme: Decoding the response seems to be a reoccurring problem.
-                        //  Apparently, some kind of better retrying is needed.
-                        //  Only way to mitigate it currently is by reducing the parallelism.
-                        if attempts == 5 {
-                            return Err(req_err.into());
+                    match resp {
+                        Err(req_err) => {
+                            println!("Request Failed: {}, {} to {}", url, start, end);
+                            if attempts >= MAX_ATTEMPTS {
+                                return Err(req_err.into());
+                            }
+                            attempts += 1;
+                            tokio::time::sleep(Duration::from_millis(1000 * attempts as u64)).await;
+                            continue;
                         }
-                        attempts += 1;
-                        continue;
+                        Ok(resp) => {
+                            let mut stream = resp.bytes_stream();
+                            let mut buffer = Vec::with_capacity((end - start + 1) as usize);
+
+                            let stream_res: anyhow::Result<()> = async {
+                                while let Some(chunk) = stream.next().await {
+                                    let x = chunk?;
+                                    buffer.extend_from_slice(&x);
+                                    progress.on_range_done(&file_name, x.len()).await;
+                                }
+                                Ok(())
+                            }
+                            .await;
+
+                            if let Err(e) = stream_res {
+                                println!("Streaming failed: {}, {} to {}", url, start, end);
+                                if attempts >= MAX_ATTEMPTS {
+                                    return Err(e);
+                                }
+                                attempts += 1;
+                                tokio::time::sleep(Duration::from_millis(1000 * attempts as u64))
+                                    .await;
+                                continue;
+                            }
+
+                            let mut f = file.lock().await;
+                            f.seek(std::io::SeekFrom::Start(start)).await?;
+                            f.write_all(&buffer).await?;
+                            f.flush().await?;
+
+                            break;
+                        }
                     }
-
-                    let resp = resp.unwrap();
-                    let mut stream = resp.bytes_stream();
-
-                    let mut buf = Vec::with_capacity((end - start + 1) as usize);
-                    while let Some(chunk) = stream.next().await {
-                        let x = chunk?;
-                        buf.extend_from_slice(&x);
-                        progress.on_range_done(&file_name, x.len());
-                    }
-
-                    let mut f = file.lock().await;
-                    f.seek(std::io::SeekFrom::Start(start)).await?;
-                    f.write_all(&buf).await?;
-                    f.flush().await?;
-
-                    break;
                 }
                 Ok(())
             }));
@@ -208,7 +225,7 @@ impl<'a> ApplicationDownloader<'a> {
             t.await??;
         }
 
-        progress.on_file_done(&file_name);
+        progress.on_file_done(&file_name).await;
         Ok(())
     }
 
@@ -287,20 +304,51 @@ mod tests {
         ApplicationDownloader, DownloadConfiguration, ProgressSink,
     };
     use crate::hyperdrive::remote::products::{ProductPlatform, ProductsClient};
+    use std::collections::HashMap;
     use std::path::PathBuf;
     use std::str::FromStr;
+    use tokio::sync::Mutex;
 
-    struct TestConsoleProgress {}
+    struct TestConsoleProgress {
+        files: Mutex<HashMap<String, usize>>,
+        progress: Mutex<HashMap<String, usize>>,
+    }
+
+    impl TestConsoleProgress {
+        fn new() -> Self {
+            Self {
+                files: Mutex::new(HashMap::new()),
+                progress: Mutex::new(HashMap::new()),
+            }
+        }
+    }
+
+    #[async_trait::async_trait]
     impl ProgressSink for TestConsoleProgress {
-        fn on_file_start(&self, file: &str, total_size: usize) {
+        async fn on_file_start(&self, file: &str, total_size: usize) {
             println!("Started: {} with {} bytes", file, total_size);
+            let mut files = self.files.lock().await;
+            let mut progress = self.progress.lock().await;
+            files.insert(file.to_string(), total_size);
+            progress.insert(file.to_string(), 0);
         }
 
-        fn on_range_done(&self, file: &str, delta: usize) {
-            // println!("Downloaded {} bytes for {}", delta, file);
+        async fn on_range_done(&self, file: &str, delta: usize) {
+            let file = file.to_string();
+            let mut files = self.files.lock().await;
+            let mut progress = self.progress.lock().await;
+            let n = progress[&file] + delta;
+            let total = files[&file];
+            *progress.entry(file.to_string()).or_insert(0) = n;
+
+            let percent = (n as f32 / total as f32 * 10_000_f32).round() / 100_f32;
+
+            print!("\r{} - {}% downloaded", file, percent);
+            use std::io::{self, Write};
+            io::stdout().flush().unwrap();
         }
 
-        fn on_file_done(&self, file: &str) {
+        async fn on_file_done(&self, file: &str) {
             println!("Finished downloading {}!", file);
         }
     }
@@ -328,7 +376,7 @@ mod tests {
             .await
             .unwrap();
 
-        let progress = TestConsoleProgress {};
+        let progress = TestConsoleProgress::new();
 
         downloader.start_download(progress).await.unwrap();
     }
