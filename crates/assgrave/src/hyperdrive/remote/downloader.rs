@@ -230,14 +230,12 @@ impl<'a> ApplicationDownloader<'a> {
         let filtered: Vec<_> = pkgs
             .iter()
             .filter(|pkg| {
-                if let Some(pkg_type) = &pkg.package_type {
-                    match pkg_type {
-                        PackageKind::Core | PackageKind::Resources => return true,
-                        _ => {}
-                    }
-                }
                 if let Some(condition) = &pkg.condition {
-                    println!("Parsing condition: {}", condition);
+                    if condition.len() == 0 {
+                        return true;
+                    }
+
+                    println!("Evaluating expression: {}", condition);
                     let parsed = parse_condition(condition).unwrap();
                     let res = cev.evaluate(&parsed).unwrap();
                     print!(" => {}\n", res);
@@ -354,7 +352,7 @@ mod tests {
             PathBuf::from_str("/Users/angelodeluca/RustroverProjects/assgrave/dl_test").unwrap();
 
         let channel = pc.get_reduced_channel("CCM").unwrap();
-        let product = channel.index.get_latest("AEFT").unwrap();
+        let product = channel.index.get_latest("AICY").unwrap();
 
         let application = pc
             .get_application(product.build_guid.unwrap())
