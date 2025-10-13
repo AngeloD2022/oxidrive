@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[macro_export] 
+#[macro_export]
 macro_rules! strmap {
     ($($key:expr => $val:expr),* $(,)?) => {{
         let mut map = HashMap::new();

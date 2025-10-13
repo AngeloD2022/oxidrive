@@ -1,8 +1,11 @@
+use crate::hyperdrive::remote::condition::{ConditionEvaluator, parse_condition};
 use crate::hyperdrive::remote::models::{Application, Package, PackageKind};
-use crate::hyperdrive::remote::{ProductsClient, configure_headers};
+use crate::hyperdrive::remote::products::{ProductsClient, configure_headers};
+use crate::strmap;
 use futures_util::StreamExt;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderValue, RANGE, USER_AGENT};
+use std::collections::HashMap;
 use std::fs;
 use std::ops::Deref;
 use std::path::PathBuf;
@@ -13,9 +16,6 @@ use tokio::fs::OpenOptions;
 use tokio::io::{AsyncSeekExt, AsyncWriteExt};
 use tokio::sync::{Mutex, Semaphore};
 use tokio::task::JoinHandle;
-use crate::hyperdrive::remote::condition::{parse_condition, ConditionEvaluator};
-use crate::strmap;
-use std::collections::HashMap;
 
 const CDN_SECURE: &str = "https://ccmdls.adobe.com";
 
@@ -201,30 +201,36 @@ impl<'a> ApplicationDownloader<'a> {
     }
 
     fn filter_pkgs_for_config(&self, pkgs: &'a [Package]) -> impl Iterator<Item = &Package> {
-
-        // todo: include more details here.
-        let mut vars = strmap! {
+        // todo: remove test data here.
+        let vars = strmap! {
             "installLanguage" => self.download_cfg.locale,
             "OSProcessorFamily" => "64-bit",
-            "OSArchitecture" => "arm64"
+            "OSArchitecture" => "arm64",
+            "OSVersion" => "26.0.1",
         };
         let cev = ConditionEvaluator::new(vars, false);
 
-        let filtered: Vec<_> = pkgs.iter().filter(|pkg| {
-            if let Some(pkg_type) = &pkg.package_type {
-                match pkg_type {
-                    PackageKind::Core | PackageKind::Resources => return true,
-                    _ => {}
+        let filtered: Vec<_> = pkgs
+            .iter()
+            .filter(|pkg| {
+                if let Some(pkg_type) = &pkg.package_type {
+                    match pkg_type {
+                        PackageKind::Core | PackageKind::Resources => return true,
+                        _ => {}
+                    }
                 }
-            }
-            if let Some(condition) = &pkg.condition {
-                println!("Parsing condition: {}", condition);
-                let parsed = parse_condition(condition).unwrap();
-                cev.evaluate(&parsed).unwrap()
-            } else {
-                true
-            }
-        }).collect();
+                if let Some(condition) = &pkg.condition {
+                    println!("Parsing condition: {}", condition);
+                    let parsed = parse_condition(condition).unwrap();
+                    let res = cev.evaluate(&parsed).unwrap();
+                    print!(" => {}", res);
+
+                    res
+                } else {
+                    true
+                }
+            })
+            .collect();
 
         filtered.into_iter()
     }
@@ -269,9 +275,9 @@ impl<'a> ApplicationDownloader<'a> {
 
 mod tests {
     use crate::hyperdrive::remote::downloader::{
-        ApplicationDownloader, DownloadConfiguration, NoopProgress, ProgressSink,
+        ApplicationDownloader, DownloadConfiguration, ProgressSink,
     };
-    use crate::hyperdrive::remote::{ProductPlatform, ProductsClient};
+    use crate::hyperdrive::remote::products::{ProductPlatform, ProductsClient};
     use std::path::PathBuf;
     use std::str::FromStr;
 
@@ -282,7 +288,7 @@ mod tests {
         }
 
         fn on_range_done(&self, file: &str, delta: usize) {
-            println!("Downloaded {} bytes for {}", delta, file);
+            // println!("Downloaded {} bytes for {}", delta, file);
         }
 
         fn on_file_done(&self, file: &str) {
@@ -292,7 +298,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_application_downloader() {
-        let pc = ProductsClient::new(ProductPlatform::MacOSUniversal)
+        let pc = ProductsClient::new(ProductPlatform::MacAarch64)
             .await
             .unwrap();
 

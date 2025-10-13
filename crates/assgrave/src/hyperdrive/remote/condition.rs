@@ -1,3 +1,7 @@
+//!
+//! HyperDrive Install Condition DSL Evaluator
+//!
+
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -299,8 +303,8 @@ fn compare_vers(a: &str, b: &str, op: &Operation) -> bool {
                 Operation::Geq => a_val >= b_val,
                 Operation::Leq => a_val <= b_val,
                 Operation::Eq => a_val == b_val,
-                _ => false
-            }
+                _ => false,
+            };
         }
     }
 
@@ -327,32 +331,24 @@ impl EvalValue {
 
     pub fn compare(&self, op: &Operation, b: &Self) -> Result<bool, String> {
         match (self, b) {
-            (EvalValue::Version(a), EvalValue::Version(b)) => {
-                Ok(compare_vers(a, b, op))
+            (EvalValue::Version(a), EvalValue::Version(b)) => Ok(compare_vers(a, b, op)),
+            (EvalValue::Number(a), EvalValue::Number(b)) => Ok(match op {
+                Operation::Lt => a < b,
+                Operation::Gt => a > b,
+                Operation::Geq => a >= b,
+                Operation::Leq => a <= b,
+                Operation::Eq => a == b,
+                _ => false,
+            }),
+            (EvalValue::String(a), EvalValue::String(b)) => match op {
+                Operation::Eq => Ok(a == b),
+                _ => Err("Strings only support equality".to_string()),
             },
-            (EvalValue::Number(a), EvalValue::Number(b)) => {
-                Ok(match op {
-                    Operation::Lt => a < b,
-                    Operation::Gt => a > b,
-                    Operation::Geq => a >= b,
-                    Operation::Leq => a <= b,
-                    Operation::Eq => a == b,
-                    _ => false
-                })
+            (EvalValue::Bool(a), EvalValue::Bool(b)) => match op {
+                Operation::Eq => Ok(a == b),
+                _ => Err("Bools only support equality".to_string()),
             },
-            (EvalValue::String(a), EvalValue::String(b)) => {
-                match op {
-                    Operation::Eq => Ok(a == b),
-                    _ => Err("Strings only support equality".to_string())
-                }
-            }
-            (EvalValue::Bool(a), EvalValue::Bool(b)) => {
-                match op {
-                    Operation::Eq => Ok(a == b),
-                    _ => Err("Bools only support equality".to_string())
-                }
-            }
-            _ => Err("Type mismatch in comparison".to_string())
+            _ => Err("Type mismatch in comparison".to_string()),
         }
     }
 
@@ -394,7 +390,10 @@ impl ConditionEvaluator {
             vs.insert(ident, val);
         }
 
-        Self { variables: vs, strict: strict_mode }
+        Self {
+            variables: vs,
+            strict: strict_mode,
+        }
     }
 
     fn get_var(&self, ident: &str) -> Option<&EvalValue> {
@@ -431,7 +430,8 @@ impl ConditionEvaluator {
 
 pub fn parse_condition(expr: &str) -> Result<ExpressionNode, String> {
     let mut lexer = ConditionLexer::new(expr);
-    let tokens = lexer.tokenize()
+    let tokens = lexer
+        .tokenize()
         .map_err(|f| format!("Lex error: pos {}", f))?;
 
     let mut parser = ConditionParser::new(tokens);
@@ -440,9 +440,11 @@ pub fn parse_condition(expr: &str) -> Result<ExpressionNode, String> {
 }
 
 mod tests {
-    use crate::hyperdrive::remote::condition::{ConditionEvaluator, ConditionLexer, ConditionParser};
-    use std::collections::HashMap;
+    use crate::hyperdrive::remote::condition::{
+        ConditionEvaluator, ConditionLexer, ConditionParser,
+    };
     use crate::strmap;
+    use std::collections::HashMap;
 
     #[test]
     fn test_lexer() {
