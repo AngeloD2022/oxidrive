@@ -16,9 +16,6 @@ use tokio::fs::OpenOptions;
 use tokio::io::{AsyncSeekExt, AsyncWriteExt};
 use tokio::sync::{Mutex, Semaphore};
 use tokio::task::JoinHandle;
-use crate::hyperdrive::remote::condition::{parse_condition, ConditionEvaluator};
-use crate::strmap;
-use std::collections::HashMap;
 
 const CDN_SECURE: &str = "https://ccmdls.adobe.com";
 
@@ -220,7 +217,8 @@ impl<'a> ApplicationDownloader<'a> {
         let mut vars = strmap! {
             "installLanguage" => self.download_cfg.locale,
             "OSProcessorFamily" => "64-bit",
-            "OSArchitecture" => "arm64"
+            "OSArchitecture" => "arm64",
+            "OSVersion" => "26.0.1",
         };
         let cev = ConditionEvaluator::new(vars, false);
 
@@ -286,9 +284,9 @@ impl<'a> ApplicationDownloader<'a> {
 
 mod tests {
     use crate::hyperdrive::remote::downloader::{
-        ApplicationDownloader, DownloadConfiguration, NoopProgress, ProgressSink,
+        ApplicationDownloader, DownloadConfiguration, ProgressSink,
     };
-    use crate::hyperdrive::remote::{ProductPlatform, ProductsClient};
+    use crate::hyperdrive::remote::products::{ProductPlatform, ProductsClient};
     use std::path::PathBuf;
     use std::str::FromStr;
 
@@ -299,7 +297,7 @@ mod tests {
         }
 
         fn on_range_done(&self, file: &str, delta: usize) {
-            println!("Downloaded {} bytes for {}", delta, file);
+            // println!("Downloaded {} bytes for {}", delta, file);
         }
 
         fn on_file_done(&self, file: &str) {
@@ -309,7 +307,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_application_downloader() {
-        let pc = ProductsClient::new(ProductPlatform::MacOSUniversal)
+        let pc = ProductsClient::new(ProductPlatform::MacAarch64)
             .await
             .unwrap();
 

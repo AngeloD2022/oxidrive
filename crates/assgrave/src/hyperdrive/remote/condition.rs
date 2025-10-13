@@ -1,3 +1,7 @@
+//!
+//! HyperDrive Install Condition DSL Evaluator
+//!
+
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -446,6 +450,7 @@ mod tests {
     use crate::hyperdrive::remote::condition::{ConditionEvaluator, ConditionLexer, ConditionParser};
     use std::collections::HashMap;
     use crate::strmap;
+    use std::collections::HashMap;
 
     #[test]
     fn test_lexer() {
