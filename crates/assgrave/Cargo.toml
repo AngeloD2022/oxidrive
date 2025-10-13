@@ -13,3 +13,4 @@ tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread", "fs"] }
 tracing = "0.1.41"
 futures-util = "0.3.31"
 anyhow = "1.0.100"
+async-trait = "0.1.89"

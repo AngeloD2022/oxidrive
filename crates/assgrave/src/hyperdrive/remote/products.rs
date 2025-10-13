@@ -38,7 +38,7 @@ impl ProductPlatform {
 
     pub fn to_cdn_key(&self) -> String {
         match self {
-            ProductPlatform::MacAarch64 => "macuniversal,macarm64",
+            ProductPlatform::MacAarch64 => "macuniversal,macarm64,osx10-64,osx10",
             ProductPlatform::MacIntel64 => "macuniversal,osx10-64",
             ProductPlatform::MacIntel32 => "osx10",
             ProductPlatform::MacUniversal => "macuniversal",
