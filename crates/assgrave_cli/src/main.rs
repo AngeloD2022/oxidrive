@@ -13,9 +13,13 @@ struct CLI {
 #[derive(Subcommand)]
 enum Commands {
     Show,
+    List(commands::list::ListArgs),
+    Info(commands::info::InfoArgs),
+    Download(commands::download::DownloadArgs),
 }
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let cli = CLI::parse();
 
     match cli.command.unwrap_or(Commands::Show) {
@@ -23,5 +27,8 @@ fn main() -> Result<()> {
             commands::show::show()?;
             Ok(())
         }
+        Commands::List(args) => commands::list::execute(args).await,
+        Commands::Info(args) => commands::info::execute(args).await,
+        Commands::Download(args) => commands::download::execute(args).await,
     }
 }
