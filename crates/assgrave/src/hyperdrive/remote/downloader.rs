@@ -326,7 +326,7 @@ mod tests {
     #[async_trait::async_trait]
     impl ProgressSink for TestConsoleProgress {
         async fn on_file_start(&self, file: &str, total_size: usize) {
-            println!("Started: {} with {} bytes", file, total_size);
+            println!("\nStarted: {} with {} bytes", file, total_size);
             let mut files = self.files.lock().await;
             let mut progress = self.progress.lock().await;
             files.insert(file.to_string(), total_size);
@@ -349,7 +349,7 @@ mod tests {
         }
 
         async fn on_file_done(&self, file: &str) {
-            println!("Finished downloading {}!", file);
+            println!("\nFinished downloading {}!", file);
         }
     }
 
