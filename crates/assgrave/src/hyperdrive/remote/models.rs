@@ -810,7 +810,7 @@ pub struct Packages {
 #[serde(rename_all = "PascalCase")]
 pub struct Package {
     #[serde(rename = "Type")]
-    pub package_type: Option<TypeEnum>,
+    pub package_type: Option<PackageKind>,
 
     pub package_name: String,
 
@@ -887,7 +887,7 @@ pub struct Features {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub enum TypeEnum {
+pub enum PackageKind {
     Core,
 
     #[serde(rename = "non-core")]

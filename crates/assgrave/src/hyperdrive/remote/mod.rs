@@ -1,11 +1,16 @@
-use crate::hyperdrive::remote::index::ChannelReduced;
 use models::*;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
+mod condition;
+pub mod downloader;
 mod index;
 pub mod models;
+mod utils;
 
+pub use self::index::{ChannelReduced, ProductReduced};
+
+#[derive(Copy, Clone)]
 pub enum ProductPlatform {
     MacAarch64,
     MacIntel64,
@@ -84,11 +89,12 @@ pub async fn get_products(platform: &ProductPlatform) -> Result<Products, reqwes
 pub struct ProductsClient {
     products: Products,
     client: Client,
+    platform: ProductPlatform,
     // application_cache: HashMap<String, Application>,
 }
 
 impl ProductsClient {
-    pub async fn new(platform: &ProductPlatform) -> Result<Self, reqwest::Error> {
+    pub async fn new(platform: ProductPlatform) -> Result<Self, reqwest::Error> {
         let products = get_products(&platform).await?;
 
         let mut headers = HeaderMap::new();
@@ -99,11 +105,36 @@ impl ProductsClient {
         Ok(ProductsClient {
             products,
             client,
-            // application_cache: HashMap::new(),
+            platform,
         })
     }
 
-    async fn get_application(&self, build_guid: &str) -> Result<Application, reqwest::Error> {
+    pub fn platform(&self) -> ProductPlatform {
+        self.platform.clone()
+    }
+
+    pub fn products(&self) -> &Products {
+        &self.products
+    }
+
+    pub fn channel(&self, name: &str) -> Option<&Channel> {
+        self.products
+            .channels
+            .channel
+            .iter()
+            .find(|ch| ch.name.eq_ignore_ascii_case(name))
+    }
+
+    pub fn product_in_channel(&self, channel_name: &str, sap_code: &str) -> Option<&Product> {
+        let channel = self.channel(channel_name)?;
+        channel
+            .products
+            .product
+            .iter()
+            .find(|product| product.id.eq_ignore_ascii_case(sap_code))
+    }
+
+    pub async fn get_application(&self, build_guid: &str) -> Result<Application, reqwest::Error> {
         const URL: &str = "https://cdn-ffc.oobesaas.adobe.com/core/v3/applications";
 
         let r = self
@@ -174,7 +205,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_products_client() {
-        let mut client = ProductsClient::new(&ProductPlatform::MacOSUniversal).await;
+        let mut client = ProductsClient::new(ProductPlatform::MacOSUniversal).await;
 
         let mut client = client.unwrap();
         let ch = client.get_reduced_channel("CCM").unwrap();
