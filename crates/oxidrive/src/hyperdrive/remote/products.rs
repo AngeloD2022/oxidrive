@@ -1,9 +1,61 @@
-use crate::hyperdrive::common::models::{Application, Products};
-use crate::hyperdrive::common::platform::ProductPlatform;
-use crate::hyperdrive::remote::index::ChannelReduced;
-use log::{error, info, warn};
+use models::*;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+
+mod condition;
+pub mod downloader;
+mod index;
+pub mod models;
+mod utils;
+
+pub use self::index::{ChannelReduced, ProductReduced};
+
+#[derive(Copy, Clone)]
+pub enum ProductPlatform {
+    MacAarch64,
+    MacIntel64,
+    MacIntel32,
+    MacOSUniversal,
+    WindowsAarch64,
+    WindowsIntel64,
+    WindowsIntel32,
+}
+
+impl ProductPlatform {
+    pub fn detect() -> Option<Self> {
+        let os = std::env::consts::OS;
+        let arch = std::env::consts::ARCH;
+
+        match os {
+            "macos" => match arch {
+                "aarch64" => Some(Self::MacOSUniversal),
+                "x86_64" => Some(Self::MacIntel64),
+                "x86" => Some(Self::MacIntel32),
+                _ => None,
+            },
+            "windows" => match arch {
+                "aarch64" => Some(Self::WindowsAarch64),
+                "x86_64" => Some(Self::WindowsIntel64),
+                "x86" => Some(Self::WindowsIntel32),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
+    pub fn to_cdn_key(&self) -> String {
+        match self {
+            ProductPlatform::MacAarch64 => "macarm64",
+            ProductPlatform::MacIntel64 => "osx10-64",
+            ProductPlatform::MacIntel32 => "osx10",
+            ProductPlatform::MacOSUniversal => "osx10-64,osx10,macarm64,macuniversal",
+            ProductPlatform::WindowsAarch64 => "winarm64",
+            ProductPlatform::WindowsIntel64 => "win64",
+            ProductPlatform::WindowsIntel32 => "win32",
+        }
+        .to_string()
+    }
+}
 
 pub(crate) fn configure_headers(headers: &mut HeaderMap) {
     let extra = vec![
@@ -38,11 +90,12 @@ pub struct ProductsClient {
     products: Products,
     client: Client,
     platform: ProductPlatform,
+    // application_cache: HashMap<String, Application>,
 }
 
 impl ProductsClient {
     pub async fn new(platform: ProductPlatform) -> Result<Self, reqwest::Error> {
-        let products = get_products(&platform.to_cdn_key()).await?;
+        let products = get_products(&platform).await?;
 
         let mut headers = HeaderMap::new();
         configure_headers(&mut headers);
@@ -58,6 +111,27 @@ impl ProductsClient {
 
     pub fn platform(&self) -> ProductPlatform {
         self.platform.clone()
+    }
+
+    pub fn products(&self) -> &Products {
+        &self.products
+    }
+
+    pub fn channel(&self, name: &str) -> Option<&Channel> {
+        self.products
+            .channels
+            .channel
+            .iter()
+            .find(|ch| ch.name.eq_ignore_ascii_case(name))
+    }
+
+    pub fn product_in_channel(&self, channel_name: &str, sap_code: &str) -> Option<&Product> {
+        let channel = self.channel(channel_name)?;
+        channel
+            .products
+            .product
+            .iter()
+            .find(|product| product.id.eq_ignore_ascii_case(sap_code))
     }
 
     pub async fn get_application(&self, build_guid: &str) -> Result<Application, reqwest::Error> {
@@ -157,7 +231,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_products_client() {
-        let mut client = ProductsClient::new(ProductPlatform::MacAarch64).await;
+        let mut client = ProductsClient::new(ProductPlatform::MacOSUniversal).await;
 
         let mut client = client.unwrap();
         let ch = client.get_reduced_channel("CCM").unwrap();
