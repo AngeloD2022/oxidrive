@@ -49,6 +49,18 @@ impl ProductPlatform {
         .to_string()
     }
 
+    pub fn allowed_platforms(&self) -> Vec<String> {
+        match self {
+            ProductPlatform::MacAarch64 => vec!["macuniversal".to_string(), "macarm64".to_string()],
+            ProductPlatform::MacIntel64 => vec!["macuniversal".to_string(), "osx10-64".to_string()],
+            ProductPlatform::MacIntel32 => vec!["osx10".to_string()],
+            ProductPlatform::MacUniversal => vec![],
+            ProductPlatform::WindowsAarch64 => vec!["winarm64".to_string()],
+            ProductPlatform::WindowsIntel64 => vec!["win64".to_string()],
+            ProductPlatform::WindowsIntel32 => vec!["win32".to_string()],
+        }
+    }
+
     pub fn is_mac(&self) -> bool {
         matches!(
             self,
@@ -145,7 +157,10 @@ impl ProductsClient {
             .channel
             .iter()
             .find(|ch| ch.name.to_ascii_lowercase() == name.to_ascii_lowercase())?;
-        Some(ChannelReduced::from_channel(channel))
+        Some(ChannelReduced::from_channel(
+            channel,
+            &self.platform.allowed_platforms(),
+        ))
     }
 
     pub async fn get_download_dependencies(

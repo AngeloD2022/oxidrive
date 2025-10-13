@@ -1,9 +1,9 @@
-use crate::hyperdrive::remote::models::Channel;
+use crate::hyperdrive::remote::models::{Channel, Product};
 use std::collections::HashMap;
 use std::str::FromStr;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct SAPCode(String);
+pub struct SAPCode(pub String);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Version(String);
@@ -17,7 +17,7 @@ pub struct ProductReduced<'a> {
 
 #[derive(Debug, Default)]
 pub struct ChannelIndex<'a> {
-    by_key: HashMap<(SAPCode, Version), ProductReduced<'a>>,
+    pub(crate) by_key: HashMap<(SAPCode, Version), ProductReduced<'a>>,
     latest_by_sap: HashMap<SAPCode, ProductReduced<'a>>,
 }
 
@@ -60,7 +60,16 @@ pub struct ChannelReduced<'a> {
 }
 
 impl<'a> ChannelReduced<'a> {
-    pub fn from_channel(channel: &'a Channel) -> Self {
+    // fn get_version_for_product(channel: &Channel, product: &Product) -> String {
+    //     let lang_set = &product.platforms.platform[0].language_set[0];
+    //     let base_version = lang_set.base_version.unwrap_or();
+    //
+    //     if product.id == "APRO" {
+    //         let needle = channel.
+    //     }
+    // }
+
+    pub fn from_channel(channel: &'a Channel, allowed_platforms: &[String]) -> Self {
         let channel_code = channel.name.to_owned();
 
         // For channel index:
@@ -68,38 +77,52 @@ impl<'a> ChannelReduced<'a> {
         let mut latest_by_sap: HashMap<SAPCode, ProductReduced> = HashMap::new();
 
         for product in &channel.products.product {
-            let key = (
-                SAPCode(product.id.to_owned()),
-                Version(product.version.to_owned()),
-            );
+            for platform in &product.platforms.platform {
+                if !allowed_platforms.contains(&platform.id) {
+                    continue;
+                }
 
-            // construct reduced product.
-            let sap = product.id.as_str();
-            let version = product.version.as_str();
-            let build_guid = product.platforms.platform[0].language_set[0]
-                .build_guid
-                .as_deref();
+                let lang_set = &platform.language_set[0];
+                let prod_ver = product.version.to_owned();
+                let key = (
+                    SAPCode(product.id.to_owned()),
+                    Version(
+                        lang_set
+                            .base_version
+                            .as_ref()
+                            .unwrap_or(&prod_ver)
+                            .to_owned(),
+                    ),
+                );
 
-            let reduced = ProductReduced {
-                sap_code: sap,
-                version,
-                build_guid: build_guid,
-            };
+                // construct reduced product.
+                let sap = product.id.as_str();
+                let version = product.version.as_str();
+                let build_guid = product.platforms.platform[0].language_set[0]
+                    .build_guid
+                    .as_deref();
 
-            // apply to hash maps...
+                let reduced = ProductReduced {
+                    sap_code: sap,
+                    version,
+                    build_guid: build_guid,
+                };
 
-            by_key.insert(key.clone(), reduced);
+                // apply to hash maps...
 
-            // if the key exists, update it if our version is newer.
-            // if the key does not exist, add it.
-            latest_by_sap
-                .entry(SAPCode(sap.to_owned()))
-                .and_modify(|current| {
-                    if ver_newer(reduced.version, current.version) {
-                        *current = reduced;
-                    }
-                })
-                .or_insert(reduced);
+                by_key.insert(key.clone(), reduced);
+
+                // if the key exists, update it if our version is newer.
+                // if the key does not exist, add it.
+                latest_by_sap
+                    .entry(SAPCode(sap.to_owned()))
+                    .and_modify(|current| {
+                        if ver_newer(reduced.version, current.version) {
+                            *current = reduced;
+                        }
+                    })
+                    .or_insert(reduced);
+            }
         }
 
         let index = ChannelIndex {

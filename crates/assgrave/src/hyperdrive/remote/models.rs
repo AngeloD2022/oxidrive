@@ -232,7 +232,7 @@ pub struct PlatformElement {
 
     pub system_compatibility: SystemCompatibility,
 
-    pub id: PlatformEnum,
+    pub id: String,
 
     pub modules: Option<Modules>,
 
