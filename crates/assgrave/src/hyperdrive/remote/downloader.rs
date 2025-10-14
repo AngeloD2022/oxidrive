@@ -1,7 +1,7 @@
-use crate::hyperdrive::remote::condition::{ConditionEvaluator, parse_condition};
+use crate::hyperdrive::common::condition::{ConditionEvaluator, parse_condition};
 use crate::hyperdrive::remote::models::{Application, Package};
 use crate::hyperdrive::remote::products::{ProductsClient, configure_headers};
-use crate::hyperdrive::remote::utils;
+use crate::hyperdrive::common::utils;
 use futures_util::StreamExt;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderValue, RANGE, USER_AGENT};
@@ -350,7 +350,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_application_downloader() {
-        let pc = ProductsClient::new(ProductPlatform::MacAarch64)
+        let pc = ProductsClient::new(ProductPlatform::WindowsIntel64)
             .await
             .unwrap();
 
@@ -365,7 +365,8 @@ mod tests {
             .await
             .unwrap();
 
-        let dl_cfg = DownloadConfiguration::default();
+        let mut dl_cfg = DownloadConfiguration::default();
+        dl_cfg.os_version = "11".to_string();
 
         let downloader = ApplicationDownloader::new(path, &application, &pc, dl_cfg)
             .await

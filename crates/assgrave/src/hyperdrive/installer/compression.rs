@@ -108,7 +108,7 @@ mod tests {
     #[test]
     fn hyperdrive_lzma2() {
         // let file1 = fs::read("/Users/angelodeluca/Downloads/Install PHSP_26.10-en_US-macuniversal.app/Contents/Resources/products/PHSP/ext/AdobePhotoshop26-Core.pimx").unwrap();
-        let file2 = fs::read("/Users/angelodeluca/RustroverProjects/assgrave/dl_test/PHSP/AdobePhotoshop26-Core/AdobePhotoshop26-Core.pimx").unwrap();
+        let file2 = fs::read("/Users/angelodeluca/RustroverProjects/assgrave/dl_test/PHSP/AdobePhotoshop26-Core_x64/AdobePhotoshop26-Core_x64.pimx").unwrap();
 
         let mut hd = HyperdriveLZMA2::new().unwrap();
         let fsize = 5_000_000;
