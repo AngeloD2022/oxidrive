@@ -440,7 +440,7 @@ pub fn parse_condition(expr: &str) -> Result<ExpressionNode, String> {
 }
 
 mod tests {
-    use crate::hyperdrive::remote::condition::{
+    use crate::hyperdrive::common::condition::{
         ConditionEvaluator, ConditionLexer, ConditionParser,
     };
     use crate::strmap;
