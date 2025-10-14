@@ -107,14 +107,14 @@ mod tests {
 
     #[test]
     fn hyperdrive_lzma2() {
-        let file1 = fs::read("/Users/angelodeluca/Downloads/Install PHSP_26.10-en_US-macuniversal.app/Contents/Resources/products/PHSP/ext/AdobePhotoshop26-Core.pimx").unwrap();
-        let file2 = fs::read("/Users/angelodeluca/Downloads/Install PHSP_26.10-en_US-macuniversal.app/Contents/Resources/products/PHSP/ext/1/Common Files/Adobe/HelpCfg/en_US/Photoshop_21.0.helpcfg").unwrap();
+        // let file1 = fs::read("/Users/angelodeluca/Downloads/Install PHSP_26.10-en_US-macuniversal.app/Contents/Resources/products/PHSP/ext/AdobePhotoshop26-Core.pimx").unwrap();
+        let file2 = fs::read("/Users/angelodeluca/RustroverProjects/assgrave/dl_test/PHSP/AdobePhotoshop26-Core/AdobePhotoshop26-Core.pimx").unwrap();
 
         let mut hd = HyperdriveLZMA2::new().unwrap();
         let fsize = 5_000_000;
-        let result1 = hd.decompress(&file1, fsize).unwrap();
+        // let result1 = hd.decompress(&file1, fsize).unwrap();
         let result2 = hd.decompress(&file2, fsize).unwrap();
-        println!("{}", String::from_utf8(result1).unwrap());
+        // println!("{}", String::from_utf8(result1).unwrap());
         println!("{}", String::from_utf8(result2).unwrap());
     }
 }

@@ -1,11 +1,10 @@
 use crate::hyperdrive::remote::condition::{ConditionEvaluator, parse_condition};
-use crate::hyperdrive::remote::models::{Application, Package, PackageKind};
+use crate::hyperdrive::remote::models::{Application, Package};
 use crate::hyperdrive::remote::products::{ProductsClient, configure_headers};
-use crate::strmap;
+use crate::hyperdrive::remote::utils;
 use futures_util::StreamExt;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderValue, RANGE, USER_AGENT};
-use std::collections::HashMap;
 use std::fs;
 use std::ops::Deref;
 use std::path::PathBuf;
@@ -32,12 +31,14 @@ impl ProgressSink for NoopProgress {}
 
 pub struct DownloadConfiguration {
     locale: String,
+    os_version: String,
 }
 
 impl Default for DownloadConfiguration {
     fn default() -> Self {
         Self {
             locale: "en_US".to_string(),
+            os_version: utils::get_os_version(),
         }
     }
 }
@@ -219,12 +220,17 @@ impl<'a> ApplicationDownloader<'a> {
 
     fn filter_pkgs_for_config(&self, pkgs: &'a [Package]) -> impl Iterator<Item = &Package> {
         // todo: remove test data here.
-        let vars = strmap! {
-            "installLanguage" => self.download_cfg.locale,
-            "OSProcessorFamily" => "64-bit",
-            "OSArchitecture" => "arm64",
-            "OSVersion" => "26.0.1",
-        };
+        let mut vars = self
+            .products_client
+            .platform()
+            .get_condition_vars()
+            .unwrap();
+        vars.insert("OSVersion".to_owned(), self.download_cfg.os_version.clone());
+        vars.insert(
+            "installLanguage".to_owned(),
+            self.download_cfg.locale.clone(),
+        );
+
         let cev = ConditionEvaluator::new(vars, false);
 
         let filtered: Vec<_> = pkgs
@@ -352,7 +358,7 @@ mod tests {
             PathBuf::from_str("/Users/angelodeluca/RustroverProjects/assgrave/dl_test").unwrap();
 
         let channel = pc.get_reduced_channel("CCM").unwrap();
-        let product = channel.index.get_latest("AICY").unwrap();
+        let product = channel.index.get_latest("PHSP").unwrap();
 
         let application = pc
             .get_application(product.build_guid.unwrap())

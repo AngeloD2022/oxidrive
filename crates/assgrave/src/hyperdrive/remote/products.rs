@@ -1,7 +1,9 @@
 use crate::hyperdrive::remote::index::ChannelReduced;
 use crate::hyperdrive::remote::models::{Application, Products};
+use crate::strmap;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use std::collections::HashMap;
 
 #[derive(Copy, Clone)]
 pub enum ProductPlatform {
@@ -59,6 +61,29 @@ impl ProductPlatform {
             ProductPlatform::WindowsIntel64 => vec!["win64".to_string()],
             ProductPlatform::WindowsIntel32 => vec!["win32".to_string()],
         }
+    }
+
+    pub fn get_condition_vars(&self) -> Option<HashMap<String, String>> {
+        Some(match self {
+            ProductPlatform::MacAarch64 | ProductPlatform::WindowsAarch64 => {
+                strmap! {
+                    "OSProcessorFamily" => "64-bit",
+                    "OSArchitecture" => "arm64",
+                }
+            }
+            ProductPlatform::MacIntel64 | ProductPlatform::WindowsIntel64 => {
+                strmap! {
+                    "OSProcessorFamily" => "64-bit",
+                    "OSArchitecture" => "x64",
+                }
+            }
+            ProductPlatform::MacIntel32 | ProductPlatform::WindowsIntel32 => {
+                strmap! {
+                    "OSProcessorFamily" => "32-bit",
+                }
+            }
+            ProductPlatform::MacUniversal => return None,
+        })
     }
 
     pub fn is_mac(&self) -> bool {
