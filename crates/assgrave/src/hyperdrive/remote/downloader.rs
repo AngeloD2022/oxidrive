@@ -5,7 +5,6 @@ use crate::strmap;
 use futures_util::StreamExt;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderValue, RANGE, USER_AGENT};
-use std::collections::HashMap;
 use std::fs;
 use std::ops::Deref;
 use std::path::PathBuf;
@@ -32,12 +31,14 @@ impl ProgressSink for NoopProgress {}
 
 pub struct DownloadConfiguration {
     locale: String,
+    os_version: String,
 }
 
 impl Default for DownloadConfiguration {
     fn default() -> Self {
         Self {
             locale: "en_US".to_string(),
+            os_version: utils::get_os_version(),
         }
     }
 }
@@ -361,7 +362,7 @@ mod tests {
             PathBuf::from_str("/Users/angelodeluca/RustroverProjects/assgrave/dl_test").unwrap();
 
         let channel = pc.get_reduced_channel("CCM").unwrap();
-        let product = channel.index.get_latest("AICY").unwrap();
+        let product = channel.index.get_latest("PHSP").unwrap();
 
         let application = pc
             .get_application(product.build_guid.unwrap())
