@@ -5,7 +5,6 @@ use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 mod condition;
 pub mod downloader;
 mod index;
-pub mod models;
 mod products;
 mod utils;
 
