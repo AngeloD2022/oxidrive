@@ -1,7 +1,7 @@
-use crate::hyperdrive::common::condition::{ConditionEvaluator, parse_condition};
-use crate::hyperdrive::remote::models::{Application, Package};
-use crate::hyperdrive::remote::products::{ProductsClient, configure_headers};
+use crate::hyperdrive::common::condition::{parse_condition, ConditionEvaluator};
 use crate::hyperdrive::common::utils;
+use crate::hyperdrive::common::models::{Application, Package};
+use crate::hyperdrive::remote::products::{configure_headers, ProductsClient};
 use futures_util::StreamExt;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderValue, RANGE, USER_AGENT};
@@ -298,11 +298,12 @@ mod tests {
     use crate::hyperdrive::remote::downloader::{
         ApplicationDownloader, DownloadConfiguration, ProgressSink,
     };
-    use crate::hyperdrive::remote::products::{ProductPlatform, ProductsClient};
+    use crate::hyperdrive::remote::products::ProductsClient;
     use std::collections::HashMap;
     use std::path::PathBuf;
     use std::str::FromStr;
     use tokio::sync::Mutex;
+    use crate::hyperdrive::common::platform::ProductPlatform;
 
     struct TestConsoleProgress {
         files: Mutex<HashMap<String, usize>>,
