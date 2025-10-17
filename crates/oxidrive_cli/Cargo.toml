@@ -1,10 +1,10 @@
 [package]
-name = "assgrave_cli"
+name = "oxidrive_cli"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-assgrave = {path = "../assgrave"}
+oxidrive = {path = "../oxidrive" }
 clap = {version = "4.5.47", features = ["derive"]}
 inquire = "0.9.1"
 anyhow = "1.0.100"
