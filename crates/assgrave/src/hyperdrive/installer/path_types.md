@@ -1,28 +1,28 @@
 
 ## MacOS
 ### From HDPIM.dylib @ `FolderResolver::ExpandPathKey`
-| Path Macro              | API Parameters                                     | Expanded Result                         |
-|-------------------------|----------------------------------------------------|-----------------------------------------|
-| `AdobeProgramFiles`     | `NSLocalDomainMask, NSApplicationDirectory`        | `/Applications`                         | 
-| `ProgramFiles`          | ^                                                  | ^                                       |
-| `Utilities`             | ^                                                  | ^                                       |
-| `AdobeCommon`           | `NSLocalDomainMask, NSApplicationSupportDirectory` | `/Library/Application Support`          |
-| `Common`                | ^                                                  | ^                                       |
-| `SharedApplicationData` | ^                                                  | ^                                       |
-| `SharedDocuments`       | ^                                                  | ^                                       |
-| `_OOBEHome`             | ^                                                  | ^                                       |
-| `FontsFolder`           | `NSLocalDomainMask, NSLibraryDirectory`            | `/Library` + `/Fonts`                   |
-| `Library`               | ^                                                  | `/Library`                              |
-| `LibraryPreferences`    | ^                                                  | `/Library` + `/Preferences`             |
-| `ScriptingAdditions`    | ^                                                  | `/Library` + `/ScriptingAdditions`      |
-| `InternetPlugins`       | ^                                                  | `/Library` + `/Internet Plug-Ins`       |
-| `ColorSyncProfiles`     | ^                                                  | `/Library` + `/ColorSync` + `/Profiles` |
-| `UserInternetPlugins`   | `NSUserDomainMask, NSLibraryDirectory`             | `~/Library` + `/Internet Plug-Ins`      |
-| `UserPreferences`       | ^                                                  | `~/Library` + `/Preferences`            |
-| `UserCommon`            | `NSUserDomainMask, NSApplicationSupportDirectory`  | `~/Library/Application Support`         |
-| `UserDocuments`         | `NSUserDomainMask, NSDocumentDirectory`            | `~/Documents`                           |
-| `UserHome`              | `NSHomeDirectory()`                                | `~`                                     |
-| `UserDesktop`           | `NSUserDomainMask, NSDesktopDirectory`             | `~/Desktop`                             |
+| Path Macro              | API Parameters                                     | Expanded Result                           |
+|-------------------------|----------------------------------------------------|-------------------------------------------|
+| `AdobeProgramFiles`     | `NSLocalDomainMask, NSApplicationDirectory`        | `/Applications`                           | 
+| `ProgramFiles`          | ^                                                  | ^                                         |
+| `Utilities`             | ^                                                  | ^ + `Utilities`                           |
+| `Common`                | `NSLocalDomainMask, NSApplicationSupportDirectory` | `/Library/Application Support`            |
+| `SharedApplicationData` | ^                                                  | ^                                         |
+| `_OOBEHome`             | ^                                                  | ^                                         |
+| `AdobeCommon`           | ^                                                  | `/Library/Application Support` + `/Adobe` |
+| `FontsFolder`           | `NSLocalDomainMask, NSLibraryDirectory`            | `/Library` + `/Fonts`                     |
+| `Library`               | ^                                                  | `/Library`                                |
+| `LibraryPreferences`    | ^                                                  | `/Library` + `/Preferences`               |
+| `ScriptingAdditions`    | ^                                                  | `/Library` + `/ScriptingAdditions`        |
+| `InternetPlugins`       | ^                                                  | `/Library` + `/Internet Plug-Ins`         |
+| `ColorSyncProfiles`     | ^                                                  | `/Library` + `/ColorSync` + `/Profiles`   |
+| `UserInternetPlugins`   | `NSUserDomainMask, NSLibraryDirectory`             | `~/Library` + `/Internet Plug-Ins`        |
+| `UserPreferences`       | ^                                                  | `~/Library` + `/Preferences`              |
+| `UserCommon`            | `NSUserDomainMask, NSApplicationSupportDirectory`  | `~/Library/Application Support`           |
+| `UserDocuments`         | `NSUserDomainMask, NSDocumentDirectory`            | `~/Documents`                             |
+| `UserHome`              | `NSHomeDirectory()`                                | `~`                                       |
+| `UserDesktop`           | `NSUserDomainMask, NSDesktopDirectory`             | `~/Desktop`                               |
+| `SharedDocuments`       | -                                                  | -                                         |
 
 
 # Windows
