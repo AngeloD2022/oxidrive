@@ -103,36 +103,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "assgrave"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "futures-util",
- "lzma-sdk-sys",
- "objc2",
- "objc2-foundation",
- "regex",
- "reqwest",
- "serde",
- "serde-xml-rs",
- "serde_json",
- "sysinfo",
- "tokio",
- "windows 0.62.2",
- "zip",
-]
-
-[[package]]
-name = "assgrave_cli"
-version = "0.1.0"
-dependencies = [
- "assgrave",
- "clap",
- "inquire",
-]
-
-[[package]]
 name = "async-trait"
 version = "0.1.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1371,6 +1341,36 @@ dependencies = [
  "libc",
  "pkg-config",
  "vcpkg",
+]
+
+[[package]]
+name = "oxidrive"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "futures-util",
+ "lzma-sdk-sys",
+ "objc2",
+ "objc2-foundation",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde-xml-rs",
+ "serde_json",
+ "sysinfo",
+ "tokio",
+ "windows 0.62.2",
+ "zip",
+]
+
+[[package]]
+name = "oxidrive_cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "inquire",
+ "oxidrive",
 ]
 
 [[package]]

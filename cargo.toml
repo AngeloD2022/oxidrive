@@ -1,5 +1,5 @@
 [workspace]
-members = [ 
-    "crates/assgrave",
-    "crates/assgrave_cli"
+members = [
+    "crates/oxidrive",
+    "crates/oxidrive_cli"
 ]
