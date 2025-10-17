@@ -303,7 +303,6 @@ pub struct DependenciesClass {
 #[serde(rename_all = "camelCase")]
 pub struct Dependency {
     pub sap_code: String,
-
     pub base_version: String,
 }
 

@@ -145,7 +145,6 @@ pub struct ShortcutName {
 pub struct LocalizedName {
     #[serde(rename = "@locale")]
     locale: String,
-
     #[serde(rename = "$value")]
     name: String,
 }

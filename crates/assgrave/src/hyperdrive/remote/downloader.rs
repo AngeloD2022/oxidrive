@@ -299,6 +299,7 @@ impl<'a> ApplicationDownloader<'a> {
 }
 
 mod tests {
+    use crate::hyperdrive::common::platform::ProductPlatform;
     use crate::hyperdrive::remote::downloader::{
         ApplicationDownloader, DownloadConfiguration, ProgressSink,
     };
@@ -307,7 +308,6 @@ mod tests {
     use std::path::PathBuf;
     use std::str::FromStr;
     use tokio::sync::Mutex;
-    use crate::hyperdrive::common::platform::ProductPlatform;
 
     struct TestConsoleProgress {
         files: Mutex<HashMap<String, usize>>,

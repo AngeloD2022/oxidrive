@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::strmap;
+use std::collections::HashMap;
 
 #[derive(Copy, Clone)]
 pub enum ProductPlatform {

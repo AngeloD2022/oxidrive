@@ -1,10 +1,11 @@
-use std::path::PathBuf;
+use crate::hyperdrive::common::models::Dependency;
 use crate::hyperdrive::common::platform::ProductPlatform;
+use std::path::PathBuf;
 
-pub struct DrivingInformation {
-    sap: String,
+pub struct AppInstallManifest {
+    sap_code: String,
     codex_version: String,
-    platform: ProductPlatform
-    
+    esd_dir: String,
+    dependencies: Dependency,
+    platform: ProductPlatform,
 }
-
