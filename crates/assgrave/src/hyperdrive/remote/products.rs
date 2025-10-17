@@ -1,8 +1,8 @@
-use crate::hyperdrive::remote::index::ChannelReduced;
 use crate::hyperdrive::common::models::{Application, Products};
+use crate::hyperdrive::common::platform::ProductPlatform;
+use crate::hyperdrive::remote::index::ChannelReduced;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use crate::hyperdrive::common::platform::ProductPlatform;
 
 pub(crate) fn configure_headers(headers: &mut HeaderMap) {
     let extra = vec![
@@ -138,7 +138,7 @@ impl ProductsClient {
 #[cfg(test)]
 mod tests {
     use crate::hyperdrive::common::platform::ProductPlatform;
-    use crate::hyperdrive::remote::products::{get_products, ProductsClient};
+    use crate::hyperdrive::remote::products::{ProductsClient, get_products};
 
     #[tokio::test]
     async fn test_get_products() {
