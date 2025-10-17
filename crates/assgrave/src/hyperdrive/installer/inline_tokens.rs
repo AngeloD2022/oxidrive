@@ -11,9 +11,24 @@ impl TokenExpander {
         Self { install_dir }
     }
 
-    #[cfg(target_os = "windows")]
-    fn win_token_expand(&self, value: &str) -> Option<String> {
-        todo!()
+    pub fn expand(&mut self, value: &str) -> Result<String, ()> {
+        let regex = Regex::new(TOKEN_PATTERN).unwrap();
+        Ok(regex.replace_all(value, self).to_string())
+    }
+
+    fn expand_token(&self, token: &str) -> Option<String> {
+        match token {
+            "INSTALLDIR" => Some(self.install_dir.clone()),
+            _ => {
+                #[cfg(target_os = "macos")]
+                let r = self.macos_token_expand(token);
+
+                #[cfg(target_os = "windows")]
+                let r = self.win_token_expand(token);
+
+                r
+            }
+        }
     }
 
     #[cfg(target_os = "macos")]
@@ -70,10 +85,12 @@ impl TokenExpander {
                 true,
             )
             .ok()?
-            .absoluteString()?
+            .path()?
             .to_string();
 
         let append = match value {
+            "Utilities" => "/Utilities",
+            "AdobeCommon" => "/Adobe",
             "FontsFolder" => "/Fonts",
             "LibraryPreferences" | "UserPreferences" => "/Preferences",
             "ScriptingAdditions" => "/ScriptingAdditions",
@@ -84,17 +101,31 @@ impl TokenExpander {
 
         Some(format!("{}{}", result, append))
     }
+
+    #[cfg(target_os = "windows")]
+    fn win_token_expand(&self, value: &str) -> Option<String> {
+        todo!()
+    }
 }
 
-impl Replacer for TokenExpander {
+impl Replacer for &mut TokenExpander {
     fn replace_append(&mut self, caps: &Captures<'_>, dst: &mut String) {
-        todo!()
+        if let Some(token_match) = caps.get(1) {
+            let token = token_match.as_str();
+
+            if let Some(path) = self.expand_token(token) {
+                dst.push_str(&path);
+            } else {
+                // Keep og token if expansion fails
+                dst.push_str(&caps[0]);
+            }
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::hyperdrive::installer::inline_tokens::TOKEN_PATTERN;
+    use crate::hyperdrive::installer::inline_tokens::{TokenExpander, TOKEN_PATTERN};
     use regex::Regex;
 
     #[test]
@@ -104,5 +135,15 @@ mod tests {
         let result = regex.captures_iter(value);
 
         for mat in result {}
+    }
+
+    #[test]
+    fn test_expander_macos() {
+        let value = "[AdobeCommon]/Adobe Photoshop 2025/AMT/Core key files/AddRemoveInfo/ps_cc_folder_plugin.icns";
+        let mut exp = TokenExpander::new("smth".to_string());
+
+        let r = exp.expand(&value).unwrap();
+
+        println!("{}", r);
     }
 }
