@@ -1,3 +1,7 @@
+///
+/// Adobe Inline Path Token Expansion
+///
+
 use regex::{Captures, Regex, Replacer};
 
 const TOKEN_PATTERN: &str = r"(?m)\[(.*)\]";
@@ -64,6 +68,7 @@ impl TokenExpander {
                 NSSearchPathDomainMask::UserDomainMask,
                 NSSearchPathDirectory::ApplicationSupportDirectory,
             ),
+            "SharedDocuments" => (NSSearchPathDomainMask::LocalDomainMask, NSSearchPathDirectory::UserDirectory),
             "UserDocuments" => (
                 NSSearchPathDomainMask::UserDomainMask,
                 NSSearchPathDirectory::DocumentDirectory,
@@ -90,6 +95,7 @@ impl TokenExpander {
 
         let append = match value {
             "Utilities" => "/Utilities",
+            "SharedDocuments" => "/Shared",
             "AdobeCommon" => "/Adobe",
             "FontsFolder" => "/Fonts",
             "LibraryPreferences" | "UserPreferences" => "/Preferences",
