@@ -37,6 +37,7 @@ oxidrive download au --os windows --arch arm -o ./installers
   - [x] Dependency resolution
   - [x] Config-dependent package filtering
   - [x] Parallelized downloader
+  - [ ] Signature validation
 
 - Installer
   - [x] Path macro resolution
