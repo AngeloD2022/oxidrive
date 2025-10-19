@@ -315,7 +315,7 @@ enum EvalValue {
     Version(String),
     String(String),
     // todo: add a string list type and make the result of equals be if it contains the right operand.
-    //  technically, the installLanguage var should be this type, since ppl might wanna install
+    //  Technically, the installLanguage var should be this type, since ppl might wanna install
     //  multiple langs.
     Bool(bool),
     Number(i32),

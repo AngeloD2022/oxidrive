@@ -1,6 +1,8 @@
-///
-/// Adobe Inline Path Token Expansion
-///
+//!
+//! Adobe Inline Path Token Expansion
+//!
+
+use log::warn;
 use regex::{Captures, Regex, Replacer};
 
 const TOKEN_PATTERN: &str = r"(?m)\[(.*)\]";
@@ -112,7 +114,76 @@ impl TokenExpander {
 
     #[cfg(target_os = "windows")]
     fn win_token_expand(&self, value: &str) -> Option<String> {
-        todo!()
+        // note: HDPIM used the SHGetFolderPathW function, which is deprecated.
+        //  We will be using the newer SHGetKnownFolderPath function.
+
+        use windows::Win32::System::Com::{
+            COINIT_APARTMENTTHREADED, CoInitializeEx, CoTaskMemFree,
+        };
+        use windows::Win32::UI::Shell::SHGetKnownFolderPath;
+        use windows::Win32::UI::Shell::{
+            FOLDERID_CommonPrograms, FOLDERID_Documents,
+            FOLDERID_Fonts, FOLDERID_LocalAppData, FOLDERID_Profile, FOLDERID_ProgramData,
+            FOLDERID_ProgramFiles, FOLDERID_ProgramFilesCommon, FOLDERID_ProgramFilesCommonX86,
+            FOLDERID_ProgramFilesX86, FOLDERID_PublicDocuments, FOLDERID_RoamingAppData,
+            FOLDERID_System, KF_FLAG_DEFAULT,
+        };
+
+        let placeholder_flag = true;
+
+        let folder_id = match value {
+            "AdobeCommon" => {
+                if placeholder_flag {
+                    FOLDERID_ProgramFilesCommon
+                } else {
+                    FOLDERID_ProgramFilesCommonX86
+                }
+            }
+            "AdobeProgramFiles" => {
+                if placeholder_flag {
+                    FOLDERID_ProgramFiles
+                } else {
+                    FOLDERID_ProgramFilesX86
+                }
+            }
+            "FontsFolder" => FOLDERID_Fonts,
+            "Common" => FOLDERID_ProgramFilesCommon,
+            "CommonX86" => FOLDERID_ProgramFilesCommonX86,
+            "ProgramFiles" => FOLDERID_ProgramFiles,
+            "ProgramFilesX86" => FOLDERID_ProgramFilesX86,
+            "SharedApplicationData" => FOLDERID_ProgramData,
+            "SharedDocuments" => FOLDERID_PublicDocuments,
+            "StartMenu" => FOLDERID_CommonPrograms,
+            "System32Folder" | "System" => FOLDERID_System,
+            "UserHome" => FOLDERID_Profile,
+            "UserDocuments" => FOLDERID_Documents,
+            "UserRoamingAppData" => FOLDERID_RoamingAppData,
+            "UserLocalAppData" => FOLDERID_LocalAppData,
+            _ => {
+                warn!("Unhandled path macro: {}", value);
+                return None
+            },
+        };
+
+        let result = unsafe {
+            let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+
+            match SHGetKnownFolderPath(&folder_id, KF_FLAG_DEFAULT, None) {
+                Ok(path) => {
+                    let path_str = path.to_string().ok()?;
+                    CoTaskMemFree(Some(path.0 as _));
+                    path_str
+                }
+                Err(_) => return None,
+            }
+        };
+
+        let append = match value {
+            "AdobeCommon" | "AdobeProgramFiles" => "\\Adobe",
+            _ => "",
+        };
+
+        Some(format!("{}{}", result, append))
     }
 }
 
