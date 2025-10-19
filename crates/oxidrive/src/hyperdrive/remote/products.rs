@@ -1,6 +1,7 @@
 use crate::hyperdrive::common::models::{Application, Products};
 use crate::hyperdrive::common::platform::ProductPlatform;
 use crate::hyperdrive::remote::index::ChannelReduced;
+use log::{error, info, warn};
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
@@ -37,7 +38,6 @@ pub struct ProductsClient {
     products: Products,
     client: Client,
     platform: ProductPlatform,
-    // application_cache: HashMap<String, Application>,
 }
 
 impl ProductsClient {
@@ -99,6 +99,11 @@ impl ProductsClient {
         &self,
         application: &Application,
     ) -> Result<Option<Vec<Application>>, reqwest::Error> {
+        info!(
+            "Resolving dependencies for {} {}...",
+            &application.sap_code, &application.base_version
+        );
+
         // Resolve dependencies of application using Products index.
         if let Some(dependencies) = &application.dependencies {
             let mut result = Vec::new();
@@ -117,6 +122,10 @@ impl ProductsClient {
                 {
                     Some(product)
                 } else {
+                    error!(
+                        "Could not resolve dependency: {} {}",
+                        &dep.sap_code, &dep.base_version
+                    );
                     None
                 };
 

@@ -1,7 +1,6 @@
 ///
 /// Adobe Inline Path Token Expansion
 ///
-
 use regex::{Captures, Regex, Replacer};
 
 const TOKEN_PATTERN: &str = r"(?m)\[(.*)\]";
@@ -68,7 +67,10 @@ impl TokenExpander {
                 NSSearchPathDomainMask::UserDomainMask,
                 NSSearchPathDirectory::ApplicationSupportDirectory,
             ),
-            "SharedDocuments" => (NSSearchPathDomainMask::LocalDomainMask, NSSearchPathDirectory::UserDirectory),
+            "SharedDocuments" => (
+                NSSearchPathDomainMask::LocalDomainMask,
+                NSSearchPathDirectory::UserDirectory,
+            ),
             "UserDocuments" => (
                 NSSearchPathDomainMask::UserDomainMask,
                 NSSearchPathDirectory::DocumentDirectory,
@@ -131,7 +133,7 @@ impl Replacer for &mut TokenExpander {
 
 #[cfg(test)]
 mod tests {
-    use crate::hyperdrive::installer::inline_tokens::{TokenExpander, TOKEN_PATTERN};
+    use crate::hyperdrive::installer::inline_tokens::{TOKEN_PATTERN, TokenExpander};
     use regex::Regex;
 
     #[test]

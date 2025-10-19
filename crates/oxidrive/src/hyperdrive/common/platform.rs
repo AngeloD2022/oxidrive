@@ -41,7 +41,7 @@ impl ProductPlatform {
             ProductPlatform::MacIntel32 => "osx10",
             ProductPlatform::MacUniversal => "macuniversal",
             ProductPlatform::WindowsAarch64 => "winarm64",
-            ProductPlatform::WindowsIntel64 => "win64",
+            ProductPlatform::WindowsIntel64 => "win64,win32",
             ProductPlatform::WindowsIntel32 => "win32",
         }
         .to_string()
@@ -54,7 +54,7 @@ impl ProductPlatform {
             ProductPlatform::MacIntel32 => vec!["osx10".to_string()],
             ProductPlatform::MacUniversal => vec![],
             ProductPlatform::WindowsAarch64 => vec!["winarm64".to_string()],
-            ProductPlatform::WindowsIntel64 => vec!["win64".to_string()],
+            ProductPlatform::WindowsIntel64 => vec!["win64".to_string(), "win32".to_string()],
             ProductPlatform::WindowsIntel32 => vec!["win32".to_string()],
         }
     }
