@@ -1,12 +1,11 @@
-use crate::hyperdrive::remote::condition::{ConditionEvaluator, parse_condition};
-use crate::hyperdrive::remote::models::{Application, Package, PackageKind};
-use crate::hyperdrive::remote::{ProductsClient, configure_headers};
-use crate::strmap;
+use crate::hyperdrive::common::condition::{ConditionEvaluator, parse_condition};
+use crate::hyperdrive::common::models::{Application, Package};
+use crate::hyperdrive::common::utils;
+use crate::hyperdrive::remote::ProductsClient;
 use futures_util::StreamExt;
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderValue, RANGE, USER_AGENT};
 use std::fs;
-use std::ops::Deref;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -16,15 +15,17 @@ use tokio::io::{AsyncSeekExt, AsyncWriteExt};
 use tokio::sync::{Mutex, Semaphore};
 use tokio::task::JoinHandle;
 
+use super::products::configure_headers;
+
 const CDN_SECURE: &str = "https://ccmdls.adobe.com";
 
 /// For the sake of exposing progress updates without coupling that logic to this crate.
 #[async_trait::async_trait]
 pub trait ProgressSink: Send + Sync {
-    async fn on_file_start(&self, file: &str, total_size: usize) {}
-    async fn on_range_done(&self, file: &str, delta: usize) {}
-    async fn on_file_done(&self, file: &str) {}
-    async fn on_error(&self, file: &str) {}
+    async fn on_file_start(&self, _file: &str, _total_size: usize) {}
+    async fn on_range_done(&self, _file: &str, _delta: usize) {}
+    async fn on_file_done(&self, _file: &str) {}
+    async fn on_error(&self, _file: &str) {}
 }
 pub struct NoopProgress;
 impl ProgressSink for NoopProgress {}
@@ -64,18 +65,6 @@ impl Default for DownloadConfiguration {
             locale: "en_US".to_string(),
             os_version: utils::get_os_version(),
         }
-    }
-}
-
-impl DownloadConfiguration {
-    pub fn with_locale<S: Into<String>>(locale: S) -> Self {
-        Self {
-            locale: locale.into(),
-        }
-    }
-
-    pub fn locale(&self) -> &str {
-        &self.locale
     }
 }
 
@@ -144,8 +133,7 @@ impl<'a> ApplicationDownloader<'a> {
         out_dir: &PathBuf,
         progress: Arc<P>,
     ) -> anyhow::Result<()> {
-        let pkg = Arc::new(pkg.clone()); // or keep &Package and clone fields you need
-        let ranges = self.compute_ranges_for_pkg(&pkg);
+        let ranges = self.compute_ranges_for_pkg(pkg);
         let mut tasks: Vec<JoinHandle<anyhow::Result<()>>> = Vec::with_capacity(ranges.len());
         let file_size = pkg.download_size;
 
@@ -256,12 +244,19 @@ impl<'a> ApplicationDownloader<'a> {
 
     fn filter_pkgs_for_config(&self, pkgs: &'a [Package]) -> impl Iterator<Item = &Package> {
         // todo: include more details here.
-        let mut vars = strmap! {
-            "installLanguage" => self.download_cfg.locale,
-            "OSProcessorFamily" => "64-bit",
-            "OSArchitecture" => "arm64",
-            "OSVersion" => "26.0.1",
-        };
+        let mut vars = self
+            .products_client
+            .platform()
+            .get_condition_vars()
+            .unwrap_or_default();
+        vars.insert(
+            "installLanguage".to_string(),
+            self.download_cfg.locale().to_string(),
+        );
+        vars.insert(
+            "OSVersion".to_string(),
+            self.download_cfg.os_version().to_string(),
+        );
         let cev = ConditionEvaluator::new(vars, false);
 
         let filtered: Vec<_> = pkgs
@@ -322,12 +317,11 @@ impl<'a> ApplicationDownloader<'a> {
     }
 }
 
+#[cfg(test)]
 mod tests {
+    use super::*;
     use crate::hyperdrive::common::platform::ProductPlatform;
-    use crate::hyperdrive::remote::downloader::{
-        ApplicationDownloader, DownloadConfiguration, ProgressSink,
-    };
-    use crate::hyperdrive::remote::products::ProductsClient;
+    use crate::hyperdrive::remote::ProductsClient;
     use std::collections::HashMap;
     use std::path::PathBuf;
     use std::str::FromStr;

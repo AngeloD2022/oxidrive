@@ -1,5 +1,6 @@
 use anyhow::{Context, Result, anyhow};
-use assgrave::hyperdrive::{Channel, Product, ProductPlatform, ProductsClient};
+use oxidrive::hyperdrive::{Channel, Product, ProductPlatform, ProductsClient};
+use std::env;
 
 pub async fn client_from_cli(
     platform_flag: Option<&str>,
@@ -38,7 +39,7 @@ fn parse_platform(raw: &str) -> Option<ProductPlatform> {
         "mac-intel64" | "mac64" | "mac-x86_64" => Some(ProductPlatform::MacIntel64),
         "mac-intel32" | "mac32" | "mac-x86" => Some(ProductPlatform::MacIntel32),
         "mac-universal" | "macos-universal" | "mac-universal2" | "mac" | "macos" => {
-            Some(ProductPlatform::MacOSUniversal)
+            Some(ProductPlatform::MacUniversal)
         }
         "win-arm64" | "winarm64" | "windows-arm64" => Some(ProductPlatform::WindowsAarch64),
         "win64" | "windows" | "windows64" | "windows-x86_64" | "win" => {
@@ -61,10 +62,34 @@ pub fn platform_key(platform: &ProductPlatform) -> &'static str {
         ProductPlatform::MacAarch64 => "mac-arm64",
         ProductPlatform::MacIntel64 => "mac-intel64",
         ProductPlatform::MacIntel32 => "mac-intel32",
-        ProductPlatform::MacOSUniversal => "mac-universal",
+        ProductPlatform::MacUniversal => "mac-universal",
         ProductPlatform::WindowsAarch64 => "win-arm64",
         ProductPlatform::WindowsIntel64 => "win64",
         ProductPlatform::WindowsIntel32 => "win32",
+    }
+}
+
+pub fn platform_from_components(os: Option<&str>, arch: Option<&str>) -> Option<ProductPlatform> {
+    let os = os?.to_ascii_lowercase();
+    let arch = arch?.to_ascii_lowercase();
+
+    match (os.as_str(), arch.as_str()) {
+        ("mac", "arm64") | ("macos", "arm64") | ("darwin", "arm64") => {
+            Some(ProductPlatform::MacAarch64)
+        }
+        ("mac", "x86_64") | ("macos", "x86_64") | ("darwin", "x86_64") => {
+            Some(ProductPlatform::MacIntel64)
+        }
+        ("mac", "x86") | ("macos", "x86") | ("darwin", "x86") => Some(ProductPlatform::MacIntel32),
+        ("mac", "universal") | ("macos", "universal") => Some(ProductPlatform::MacUniversal),
+        ("windows", "arm64") | ("win", "arm64") => Some(ProductPlatform::WindowsAarch64),
+        ("windows", "x86_64") | ("windows", "amd64") | ("win", "x86_64") | ("win", "amd64") => {
+            Some(ProductPlatform::WindowsIntel64)
+        }
+        ("windows", "x86") | ("win", "x86") | ("windows", "i686") | ("win", "i686") => {
+            Some(ProductPlatform::WindowsIntel32)
+        }
+        _ => None,
     }
 }
 
@@ -109,4 +134,43 @@ pub fn truncate(value: &str, width: usize) -> String {
     } else {
         value[..width].to_string()
     }
+}
+
+pub fn detect_locale() -> Option<String> {
+    let candidates = [
+        env::var("LC_ALL").ok(),
+        env::var("LC_MESSAGES").ok(),
+        env::var("LANG").ok(),
+        env::var("LANGUAGE").ok(),
+    ];
+
+    for candidate in candidates.into_iter().flatten() {
+        if let Some(parsed) = sanitize_locale(&candidate) {
+            return Some(parsed);
+        }
+    }
+
+    None
+}
+
+fn sanitize_locale(raw: &str) -> Option<String> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+
+    let locale = trimmed
+        .split(['.', '@'])
+        .next()
+        .unwrap_or(trimmed)
+        .split(':')
+        .next()
+        .unwrap_or(trimmed)
+        .replace('-', "_");
+
+    let mut parts = locale.split('_');
+    let lang = parts.next()?.to_ascii_lowercase();
+    let region = parts.next().map(|r| r.to_ascii_uppercase());
+
+    region.map(|region| format!("{}_{}", lang, region))
 }

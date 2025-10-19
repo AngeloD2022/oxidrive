@@ -1,4 +1,4 @@
-use crate::hyperdrive::common::models::{Channel, Product};
+use crate::hyperdrive::common::models::Channel;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::str::FromStr;

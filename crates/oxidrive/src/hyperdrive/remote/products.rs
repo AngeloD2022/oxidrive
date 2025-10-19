@@ -4,7 +4,7 @@ use log::{error, info, warn};
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
-use super::index::{ChannelReduced, ProductReduced};
+use super::index::ChannelReduced;
 
 pub(crate) fn configure_headers(headers: &mut HeaderMap) {
     let extra = vec![
@@ -105,7 +105,7 @@ impl ProductsClient {
         Ok(resp)
     }
 
-    pub fn get_reduced_channel(&self, name: &str) -> Option<ChannelReduced> {
+    pub fn get_reduced_channel(&self, name: &str) -> Option<ChannelReduced<'_>> {
         let channel = self
             .products
             .channels

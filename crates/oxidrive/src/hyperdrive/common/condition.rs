@@ -442,18 +442,10 @@ pub fn parse_condition(expr: &str) -> Result<ExpressionNode, String> {
     parser.parse()
 }
 
+#[cfg(test)]
 mod tests {
-    use crate::hyperdrive::common::condition::{
-        ConditionEvaluator, ConditionLexer, ConditionParser,
-    };
+    use super::*;
     use crate::strmap;
-    use std::collections::HashMap;
-
-mod tests {
-    use crate::hyperdrive::remote::condition::{ConditionEvaluator, ConditionLexer, ConditionParser};
-    use std::collections::HashMap;
-    use crate::strmap;
-    use std::collections::HashMap;
 
     #[test]
     fn test_lexer() {

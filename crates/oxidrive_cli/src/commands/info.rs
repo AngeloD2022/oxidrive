@@ -3,7 +3,7 @@ use clap::Args;
 use console::Style;
 use textwrap::fill;
 
-use assgrave::hyperdrive::{Application, ChannelReduced, Package, ProductsClient};
+type ProductsClient = oxidrive::hyperdrive::ProductsClient;
 
 use super::util;
 
@@ -30,8 +30,9 @@ pub struct InfoArgs {
 pub async fn execute(args: InfoArgs) -> Result<()> {
     let sap_code = args.sap_code.to_ascii_uppercase();
     let (client, platform) = util::client_from_cli(args.platform.as_deref()).await?;
-    let channel = util::get_channel(&client, &args.channel)?;
-    let reduced = ChannelReduced::from_channel(channel);
+    let reduced = client
+        .get_reduced_channel(&args.channel)
+        .ok_or_else(|| anyhow::anyhow!("channel '{}' has no index", args.channel))?;
 
     let selected = if let Some(version) = args.version.as_deref() {
         reduced
@@ -47,7 +48,7 @@ pub async fn execute(args: InfoArgs) -> Result<()> {
 
     let build_guid = selected
         .build_guid
-        .ok_or_else(|| anyhow::anyhow!("product '{}' is missing build GUID", sap_code))?;
+        .ok_or_else(|| anyhow::anyhow!("product '{sap_code}' is missing build GUID"))?;
 
     let application = client
         .get_application(build_guid)
@@ -108,7 +109,7 @@ pub async fn execute(args: InfoArgs) -> Result<()> {
     Ok(())
 }
 
-fn print_package_table(packages: &[Package]) {
+fn print_package_table(packages: &[oxidrive::hyperdrive::Package]) {
     let header = Style::new().underlined();
     println!("\n{}", header.apply_to("Packages"));
     println!("{:<40} {:<12} {:<12}", "Name", "Download", "Extract");
@@ -124,7 +125,10 @@ fn print_package_table(packages: &[Package]) {
     }
 }
 
-async fn print_dependencies(client: &ProductsClient, application: &Application) -> Result<()> {
+async fn print_dependencies(
+    client: &ProductsClient,
+    application: &oxidrive::hyperdrive::Application,
+) -> Result<()> {
     println!("\nDependencies:");
     let deps = client
         .get_download_dependencies(application)
@@ -133,6 +137,7 @@ async fn print_dependencies(client: &ProductsClient, application: &Application) 
 
     match deps {
         None => println!("  (none)"),
+        Some(list) if list.is_empty() => println!("  (none)"),
         Some(list) => {
             for dep in list {
                 println!(

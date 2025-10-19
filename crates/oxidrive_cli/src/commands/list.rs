@@ -1,6 +1,7 @@
 use anyhow::Result;
 use clap::Args;
 use console::Style;
+use serde_json::json;
 
 use super::util;
 
@@ -17,6 +18,9 @@ pub struct ListArgs {
 
     #[arg(long)]
     pub limit: Option<usize>,
+
+    #[arg(long, help = "Emit product metadata as JSON rather than a table")]
+    pub json: bool,
 }
 
 pub async fn execute(args: ListArgs) -> Result<()> {
@@ -43,6 +47,24 @@ pub async fn execute(args: ListArgs) -> Result<()> {
                 break;
             }
         }
+    }
+
+    if args.json {
+        let payload: Vec<_> = visible
+            .iter()
+            .map(|product| {
+                json!({
+                    "sap": product.id,
+                    "display_name": product.display_name,
+                    "version": product.version,
+                    "family": product.family,
+                    "channel": args.channel,
+                    "platform": util::platform_key(&platform),
+                })
+            })
+            .collect();
+        println!("{}", serde_json::to_string_pretty(&payload)?);
+        return Ok(());
     }
 
     let header = Style::new().bold();
