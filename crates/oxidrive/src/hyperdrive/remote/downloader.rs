@@ -355,12 +355,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_application_downloader() {
+        let _ = env_logger::builder().is_test(true).try_init();
+
         let pc = ProductsClient::new(ProductPlatform::WindowsIntel64)
             .await
             .unwrap();
 
         let path =
-            PathBuf::from_str("/Users/angelodeluca/RustroverProjects/assgrave/dl_test").unwrap();
+            PathBuf::from_str("/Users/angelodeluca/RustroverProjects/oxidrive/dl_test").unwrap();
 
         let channel = pc.get_reduced_channel("CCM").unwrap();
         let product = channel.index.get_latest("PHSP").unwrap();
