@@ -5,5 +5,5 @@ edition = "2024"
 
 [dependencies]
 oxidrive = {path = "../oxidrive" }
-clap = {version = "4.5.47", features = ["derive"]}
+clap = {version = "4.5.49", features = ["derive"]}
 inquire = "0.9.1"
