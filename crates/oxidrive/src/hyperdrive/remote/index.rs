@@ -1,4 +1,5 @@
 use crate::hyperdrive::common::models::{Channel, Product};
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -32,6 +33,28 @@ impl<'a> ChannelIndex<'a> {
         self.latest_by_sap
             .get(&(SAPCode(code.to_string())))
             .copied()
+    }
+
+    pub fn versions(&self, code: &str) -> Vec<&'a str> {
+        let mut versions: Vec<&'a str> = self
+            .by_key
+            .values()
+            .filter(|product| product.sap_code.eq_ignore_ascii_case(code))
+            .map(|product| product.version)
+            .collect();
+
+        versions.sort_by(|a, b| {
+            if ver_newer(a, b) {
+                Ordering::Less
+            } else if ver_newer(b, a) {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        });
+
+        versions.dedup();
+        versions
     }
 }
 

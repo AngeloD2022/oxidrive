@@ -34,6 +34,30 @@ pub struct DownloadConfiguration {
     os_version: String,
 }
 
+impl DownloadConfiguration {
+    pub fn with_locale(locale: impl Into<String>) -> Self {
+        let mut cfg = Self::default();
+        cfg.locale = locale.into();
+        cfg
+    }
+
+    pub fn set_locale(&mut self, locale: impl Into<String>) {
+        self.locale = locale.into();
+    }
+
+    pub fn set_os_version(&mut self, os_version: impl Into<String>) {
+        self.os_version = os_version.into();
+    }
+
+    pub fn locale(&self) -> &str {
+        &self.locale
+    }
+
+    pub fn os_version(&self) -> &str {
+        &self.os_version
+    }
+}
+
 impl Default for DownloadConfiguration {
     fn default() -> Self {
         Self {

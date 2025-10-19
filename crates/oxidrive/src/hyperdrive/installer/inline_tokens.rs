@@ -26,12 +26,18 @@ impl TokenExpander {
             "INSTALLDIR" => Some(self.install_dir.clone()),
             _ => {
                 #[cfg(target_os = "macos")]
-                let r = self.macos_token_expand(token);
-
+                {
+                    return self.macos_token_expand(token);
+                }
                 #[cfg(target_os = "windows")]
-                let r = self.win_token_expand(token);
-
-                r
+                {
+                    return self.win_token_expand(token);
+                }
+                #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+                {
+                    warn!("Path macro '{}' is not supported on this platform", token);
+                    None
+                }
             }
         }
     }
@@ -122,11 +128,10 @@ impl TokenExpander {
         };
         use windows::Win32::UI::Shell::SHGetKnownFolderPath;
         use windows::Win32::UI::Shell::{
-            FOLDERID_CommonPrograms, FOLDERID_Documents,
-            FOLDERID_Fonts, FOLDERID_LocalAppData, FOLDERID_Profile, FOLDERID_ProgramData,
-            FOLDERID_ProgramFiles, FOLDERID_ProgramFilesCommon, FOLDERID_ProgramFilesCommonX86,
-            FOLDERID_ProgramFilesX86, FOLDERID_PublicDocuments, FOLDERID_RoamingAppData,
-            FOLDERID_System, KF_FLAG_DEFAULT,
+            FOLDERID_CommonPrograms, FOLDERID_Documents, FOLDERID_Fonts, FOLDERID_LocalAppData,
+            FOLDERID_Profile, FOLDERID_ProgramData, FOLDERID_ProgramFiles,
+            FOLDERID_ProgramFilesCommon, FOLDERID_ProgramFilesCommonX86, FOLDERID_ProgramFilesX86,
+            FOLDERID_PublicDocuments, FOLDERID_RoamingAppData, FOLDERID_System, KF_FLAG_DEFAULT,
         };
 
         let placeholder_flag = true;
@@ -161,8 +166,8 @@ impl TokenExpander {
             "UserLocalAppData" => FOLDERID_LocalAppData,
             _ => {
                 warn!("Unhandled path macro: {}", value);
-                return None
-            },
+                return None;
+            }
         };
 
         let result = unsafe {

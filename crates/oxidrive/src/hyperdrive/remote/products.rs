@@ -1,61 +1,10 @@
-use models::*;
+use crate::hyperdrive::common::models::{Application, Channel, Product, Products};
+use crate::hyperdrive::common::platform::ProductPlatform;
+use log::{error, info, warn};
 use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
-mod condition;
-pub mod downloader;
-mod index;
-pub mod models;
-mod utils;
-
-pub use self::index::{ChannelReduced, ProductReduced};
-
-#[derive(Copy, Clone)]
-pub enum ProductPlatform {
-    MacAarch64,
-    MacIntel64,
-    MacIntel32,
-    MacOSUniversal,
-    WindowsAarch64,
-    WindowsIntel64,
-    WindowsIntel32,
-}
-
-impl ProductPlatform {
-    pub fn detect() -> Option<Self> {
-        let os = std::env::consts::OS;
-        let arch = std::env::consts::ARCH;
-
-        match os {
-            "macos" => match arch {
-                "aarch64" => Some(Self::MacOSUniversal),
-                "x86_64" => Some(Self::MacIntel64),
-                "x86" => Some(Self::MacIntel32),
-                _ => None,
-            },
-            "windows" => match arch {
-                "aarch64" => Some(Self::WindowsAarch64),
-                "x86_64" => Some(Self::WindowsIntel64),
-                "x86" => Some(Self::WindowsIntel32),
-                _ => None,
-            },
-            _ => None,
-        }
-    }
-
-    pub fn to_cdn_key(&self) -> String {
-        match self {
-            ProductPlatform::MacAarch64 => "macarm64",
-            ProductPlatform::MacIntel64 => "osx10-64",
-            ProductPlatform::MacIntel32 => "osx10",
-            ProductPlatform::MacOSUniversal => "osx10-64,osx10,macarm64,macuniversal",
-            ProductPlatform::WindowsAarch64 => "winarm64",
-            ProductPlatform::WindowsIntel64 => "win64",
-            ProductPlatform::WindowsIntel32 => "win32",
-        }
-        .to_string()
-    }
-}
+use super::index::{ChannelReduced, ProductReduced};
 
 pub(crate) fn configure_headers(headers: &mut HeaderMap) {
     let extra = vec![
@@ -68,11 +17,11 @@ pub(crate) fn configure_headers(headers: &mut HeaderMap) {
     }
 }
 
-pub async fn get_products(platform: &str) -> Result<Products, reqwest::Error> {
+pub async fn get_products(platform: &ProductPlatform) -> Result<Products, reqwest::Error> {
     let url = format!(
         "https://prod-rel-ffc-ccm.oobesaas.adobe.com/adobe-ffc-external/core/v6/products/all?\
         _type=json&channel=ccm&channel=sti&platform={}&productType=Desktop",
-        platform
+        platform.to_cdn_key()
     );
 
     let mut headers = HeaderMap::new();
@@ -110,7 +59,7 @@ impl ProductsClient {
     }
 
     pub fn platform(&self) -> ProductPlatform {
-        self.platform.clone()
+        self.platform
     }
 
     pub fn products(&self) -> &Products {
@@ -163,10 +112,8 @@ impl ProductsClient {
             .channel
             .iter()
             .find(|ch| ch.name.to_ascii_lowercase() == name.to_ascii_lowercase())?;
-        Some(ChannelReduced::from_channel(
-            channel,
-            &self.platform.allowed_platforms(),
-        ))
+        let allowed = self.platform.allowed_platforms();
+        Some(ChannelReduced::from_channel(channel, &allowed))
     }
 
     pub async fn get_download_dependencies(
@@ -183,30 +130,41 @@ impl ProductsClient {
             let mut result = Vec::new();
 
             // Build an index of the channel for easy navigation.
-            let reduced_sti = self.get_reduced_channel("STI").unwrap();
-            let reduced_ccm = self.get_reduced_channel("CCM").unwrap();
+            let reduced_sti = self.get_reduced_channel("STI");
+            let reduced_ccm = self.get_reduced_channel("CCM");
+
+            if reduced_ccm.is_none() && reduced_sti.is_none() {
+                warn!("Unable to resolve dependencies: both CCM and STI channels missing");
+                return Ok(None);
+            }
 
             for dep in &dependencies.dependency {
-                let product = if let Some(product) =
-                    reduced_ccm.index.get(&dep.sap_code, &dep.base_version)
-                {
-                    Some(product)
-                } else if let Some(product) =
-                    reduced_sti.index.get(&dep.sap_code, &dep.base_version)
-                {
-                    Some(product)
-                } else {
-                    error!(
-                        "Could not resolve dependency: {} {}",
-                        &dep.sap_code, &dep.base_version
-                    );
-                    None
-                };
+                let product = reduced_ccm
+                    .as_ref()
+                    .and_then(|channel| channel.index.get(&dep.sap_code, &dep.base_version))
+                    .or_else(|| {
+                        reduced_sti
+                            .as_ref()
+                            .and_then(|channel| channel.index.get(&dep.sap_code, &dep.base_version))
+                    });
 
-                if let Some(product) = product {
-                    if let Some(build_guid) = product.build_guid {
-                        let resolved_application = self.get_application(build_guid).await?;
-                        result.push(resolved_application);
+                match product {
+                    Some(product) => {
+                        if let Some(build_guid) = product.build_guid {
+                            let resolved_application = self.get_application(build_guid).await?;
+                            result.push(resolved_application);
+                        } else {
+                            warn!(
+                                "Dependency {} {} is missing a build GUID",
+                                dep.sap_code, dep.base_version
+                            );
+                        }
+                    }
+                    None => {
+                        error!(
+                            "Could not resolve dependency: {} {}",
+                            dep.sap_code, dep.base_version
+                        );
                     }
                 }
             }
@@ -220,31 +178,29 @@ impl ProductsClient {
 
 #[cfg(test)]
 mod tests {
-    use crate::hyperdrive::common::platform::ProductPlatform;
-    use crate::hyperdrive::remote::products::{ProductsClient, get_products};
+    use super::*;
 
     #[tokio::test]
     async fn test_get_products() {
         let platform = ProductPlatform::MacAarch64;
-        let response = get_products(&platform.to_cdn_key()).await.unwrap();
+        let _response = get_products(&platform).await.unwrap();
     }
 
     #[tokio::test]
     async fn test_products_client() {
-        let mut client = ProductsClient::new(ProductPlatform::MacOSUniversal).await;
+        let client = ProductsClient::new(ProductPlatform::MacAarch64)
+            .await
+            .unwrap();
 
-        let mut client = client.unwrap();
         let ch = client.get_reduced_channel("CCM").unwrap();
         let latest = ch.index.get_latest("PHSP").unwrap();
 
         let guid = latest.build_guid.unwrap().to_owned();
         let application = client.get_application(&guid).await.unwrap();
 
-        let ae_deps = client
+        let _ae_deps = client
             .get_download_dependencies(&application)
             .await
-            .unwrap()
             .unwrap();
-        println!("{}", ae_deps.len())
     }
 }
