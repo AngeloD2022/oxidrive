@@ -4,6 +4,7 @@ use console::Style;
 use textwrap::fill;
 
 type ProductsClient = oxidrive::hyperdrive::ProductsClient;
+type SupportedLanguages = oxidrive::hyperdrive::SupportedLanguages;
 
 use super::util;
 
@@ -75,16 +76,18 @@ pub async fn execute(args: InfoArgs) -> Result<()> {
     println!("Build GUID: {}", build_guid);
     println!("Language set: {}", application.language_set);
 
+    let preferred_locale = util::detect_locale();
+
     if let Some(desc) = &application.product_description {
-        if let Some(tag) = desc.tagline.language.first() {
-            println!("Tagline: {}", tag.value.trim());
+        if let Some(tagline) = select_localized_text(&desc.tagline, preferred_locale.as_deref()) {
+            println!("Tagline: {}", tagline);
         }
         if let Some(details) = desc
             .detailed_description
             .as_ref()
-            .and_then(|d| d.language.first())
+            .and_then(|langs| select_localized_text(langs, preferred_locale.as_deref()))
         {
-            println!("Description: {}", fill(details.value.trim(), 80));
+            println!("Description: {}", fill(details, 80));
         }
     }
 
@@ -107,6 +110,81 @@ pub async fn execute(args: InfoArgs) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn select_localized_text<'a>(
+    supported: &'a SupportedLanguages,
+    preferred_locale: Option<&str>,
+) -> Option<&'a str> {
+    if supported.language.is_empty() {
+        return None;
+    }
+    let normalized_preferred = preferred_locale.map(normalize_locale);
+
+    if let Some(ref pref) = normalized_preferred {
+        if let Some(value) = supported.language.iter().find_map(|lang| {
+            let value = lang.value.trim();
+            if value.is_empty() {
+                return None;
+            }
+
+            if normalize_locale(&lang.locale) == *pref {
+                Some(value)
+            } else {
+                None
+            }
+        }) {
+            return Some(value);
+        }
+
+        let pref_lang = pref.split('_').next().unwrap_or(pref.as_str());
+        if let Some(value) = supported.language.iter().find_map(|lang| {
+            let value = lang.value.trim();
+            if value.is_empty() {
+                return None;
+            }
+
+            let locale_norm = normalize_locale(&lang.locale);
+            let lang_code = locale_norm.split('_').next().unwrap_or(locale_norm.as_str());
+            if lang_code == pref_lang {
+                Some(value)
+            } else {
+                None
+            }
+        }) {
+            return Some(value);
+        }
+    }
+
+    if let Some(value) = supported.language.iter().find_map(|lang| {
+        let value = lang.value.trim();
+        if value.is_empty() {
+            return None;
+        }
+
+        let locale_norm = normalize_locale(&lang.locale);
+        let lang_code = locale_norm.split('_').next().unwrap_or(locale_norm.as_str());
+        if lang_code == "en" {
+            Some(value)
+        } else {
+            None
+        }
+    }) {
+        return Some(value);
+    }
+
+    supported.language.iter().find_map(|lang| {
+        let value = lang.value.trim();
+        if value.is_empty() {
+            None
+        } else {
+            Some(value)
+        }
+    })
+}
+
+fn normalize_locale(raw: &str) -> String {
+    raw.trim().replace('-', "_").to_ascii_lowercase()
 }
 
 fn print_package_table(packages: &[oxidrive::hyperdrive::Package]) {
