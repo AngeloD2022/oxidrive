@@ -1,7 +1,7 @@
 mod commands;
 
 use anyhow::Result;
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -19,8 +19,6 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    #[command(about = "Display a summary of available commands")]
-    Show,
     #[command(about = "List products in a channel with optional filtering")]
     List(commands::list::ListArgs),
     #[command(about = "Show detailed metadata for a product")]
@@ -35,12 +33,15 @@ enum Commands {
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    match cli.command.unwrap_or_else(|| Commands::Show) {
-        Commands::Show => commands::show::show()?,
-        Commands::List(args) => commands::list::execute(args).await?,
-        Commands::Info(args) => commands::info::execute(args).await?,
-        Commands::Download(args) => commands::download::execute(args).await?,
-        Commands::Install(args) => commands::install::execute(args).await?,
+    match cli.command {
+        Some(Commands::List(args)) => commands::list::execute(args).await?,
+        Some(Commands::Info(args)) => commands::info::execute(args).await?,
+        Some(Commands::Download(args)) => commands::download::execute(args).await?,
+        Some(Commands::Install(args)) => commands::install::execute(args).await?,
+        None => {
+            Cli::command().print_help()?;
+            println!();
+        }
     }
 
     Ok(())
