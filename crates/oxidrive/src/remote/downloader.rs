@@ -35,6 +35,8 @@ pub struct DownloadConfiguration {
     pub os_version: String,
     /// Save information to inform the installer if it is being packaged for later use.
     pub install_later: bool,
+    /// List of SAP codes to exclude from the download.
+    pub exclude_dependencies: Option<Vec<String>>,
 }
 
 impl Default for DownloadConfiguration {
@@ -43,6 +45,7 @@ impl Default for DownloadConfiguration {
             locale: "en_US".to_string(),
             os_version: utils::get_os_version(),
             install_later: false,
+            exclude_dependencies: None,
         }
     }
 }
@@ -223,8 +226,17 @@ impl<'a> ApplicationDownloader<'a> {
         Ok(())
     }
 
-    fn filter_pkgs_for_config(&self, pkgs: &'a [Package]) -> impl Iterator<Item = &Package> {
-        // todo: remove test data here.
+    fn filter_pkgs_for_config(
+        &self,
+        app: &Application,
+        pkgs: &'a [Package],
+    ) -> impl Iterator<Item = &Package> {
+        if let Some(exclude) = &self.download_cfg.exclude_dependencies {
+            if exclude.contains(&app.sap_code) {
+                return Vec::new().into_iter();
+            }
+        }
+
         let mut vars = self
             .products_client
             .platform()
@@ -281,7 +293,7 @@ impl<'a> ApplicationDownloader<'a> {
         fs::create_dir_all(&main_application_dir)?; // ensure exists
 
         // main packages
-        for pkg in self.filter_pkgs_for_config(&self.app_spec.packages.package) {
+        for pkg in self.filter_pkgs_for_config(self.app_spec, &self.app_spec.packages.package) {
             self.exec_download_for_pkg(pkg, &main_application_dir, progress.clone())
                 .await?;
         }
@@ -291,7 +303,7 @@ impl<'a> ApplicationDownloader<'a> {
             for dep in &deps {
                 let application_dir = self.output_dir.join(&dep.sap_code);
                 fs::create_dir_all(&application_dir)?; // ensure exists
-                for pkg in self.filter_pkgs_for_config(&dep.packages.package) {
+                for pkg in self.filter_pkgs_for_config(&dep, &dep.packages.package) {
                     self.exec_download_for_pkg(pkg, &application_dir, progress.clone())
                         .await?;
                 }
@@ -338,7 +350,7 @@ mod tests {
 
         async fn on_range_done(&self, file: &str, delta: usize) {
             let file = file.to_string();
-            let mut files = self.files.lock().await;
+            let files = self.files.lock().await;
             let mut progress = self.progress.lock().await;
             let n = progress[&file] + delta;
             let total = files[&file];

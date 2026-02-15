@@ -1,5 +1,3 @@
-
-
 use indicatif::MultiProgress;
 use std::sync::OnceLock;
 
@@ -8,7 +6,6 @@ static GLOBAL_PROGRESS: OnceLock<MultiProgress> = OnceLock::new();
 pub fn set_global_progress(mp: MultiProgress) {
     let _ = GLOBAL_PROGRESS.set(mp);
 }
-
 
 pub fn log_step(subsystem: &str, message: impl AsRef<str>) {
     let now = chrono::Local::now();
@@ -35,4 +32,3 @@ macro_rules! log_info {
         $crate::logging::log_step($subsys, format!($($arg)*))
     };
 }
-

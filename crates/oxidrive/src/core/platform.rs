@@ -133,7 +133,7 @@ impl ProductPlatform {
     pub fn application_platform(&self) -> Self {
         match self {
             ProductPlatform::MacAarch64 => ProductPlatform::MacUniversal,
-            ProductPlatform::WindowsAarch64 => ProductPlatform::MacIntel64,
+            ProductPlatform::WindowsAarch64 => ProductPlatform::WindowsIntel64,
             _ => *self,
         }
     }

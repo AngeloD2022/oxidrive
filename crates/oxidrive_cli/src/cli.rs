@@ -121,7 +121,10 @@ pub struct InstallCommand {
     pub out_dir: Option<PathBuf>,
 
     #[arg(long)]
-    pub dry_run: bool
+    pub dry_run: bool,
+
+    #[arg(long)]
+    pub no_bloatware: bool,
 }
 
 pub fn parse_args() -> Cli {

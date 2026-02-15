@@ -1,4 +1,4 @@
-use crate::core::condition::{parse_condition, ConditionEvaluator, EvalValue};
+use crate::core::condition::{ConditionEvaluator, EvalValue, parse_condition};
 use crate::core::errors::GenericError;
 use crate::core::models::{Application, CompressionType};
 use crate::core::platform::ProductPlatform;
@@ -6,7 +6,7 @@ use crate::core::utils::{file_name_from_package, get_os_version};
 use crate::installer::compression::HyperdriveLZMA2;
 use crate::installer::inline_tokens::TokenExpander;
 use crate::installer::os_actions::{BackendError, InstallActionBackend};
-use crate::installer::pim::{parse_pimx, Command, PIMXPackage};
+use crate::installer::pim::{Command, PIMXPackage, parse_pimx};
 use globset::GlobBuilder;
 use pathdiff::diff_paths;
 use rayon::prelude::*;
@@ -16,10 +16,10 @@ use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::{fs, io};
-use tempfile::{tempdir, TempDir};
+use tempfile::{TempDir, tempdir};
 use thiserror::Error;
-use zip::result::ZipError;
 use zip::ZipArchive;
+use zip::result::ZipError;
 
 use crate::installer::install::InstallerError::{
     InvalidPackage, InvalidPrecondition, MalformedPIMX,
@@ -663,17 +663,23 @@ impl<'a> PackageInterface<'a> {
 
         // compressed-with-LZMA2
         if self._hdc_instance.is_some() && !is_symlink {
-            let extra = self.read_local_extra_data(header_start)?;
-            let value = utf8_bytes_to_u64(&extra).ok_or_else(|| {
-                io::Error::new(io::ErrorKind::InvalidData, "invalid LZMA2 extra data")
-            })?;
+            // Occasionally, there seems to be a discrepancy in the application metadata
+            // regarding its compression type.
+            // If this happens, fallback to normal decompression.
+            if let Ok(extra) = self.read_local_extra_data(header_start) {
+                let value = utf8_bytes_to_u64(&extra).ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidData, "invalid LZMA2 extra data")
+                })?;
 
-            let compression = self._hdc_instance.as_mut().unwrap();
-            let buf = compression.decompress(&buf, value).map_err(|_| {
-                io::Error::new(io::ErrorKind::InvalidData, "LZMA2 decompress failed")
-            })?;
-            // todo: hold the unix mode in this enum as well so that we can write executables with +x
-            Ok(ExtractedEntity::File(buf, Some(mode)))
+                let compression = self._hdc_instance.as_mut().unwrap();
+                let buf = compression.decompress(&buf, value).map_err(|_| {
+                    io::Error::new(io::ErrorKind::InvalidData, "LZMA2 decompress failed")
+                })?;
+                // todo: hold the unix mode in this enum as well so that we can write executables with +x
+                Ok(ExtractedEntity::File(buf, Some(mode)))
+            } else {
+                Ok(ExtractedEntity::Symlink(String::from_utf8(buf).unwrap()))
+            }
         } else {
             // normal zip
             if is_symlink {

@@ -1,8 +1,8 @@
 mod cli;
+mod logging;
 mod progress;
 mod system;
 mod wizard;
-mod logging;
 
 use crate::cli::InstallCommand;
 use crate::progress::IndicatifDownloadProgress;
@@ -14,12 +14,12 @@ use cli::{Cli, Command};
 use oxidrive::core::condition::EvalValue;
 use oxidrive::core::platform::ProductPlatform;
 use oxidrive::core::utils::get_os_version;
+use oxidrive::installer::install::{InstallConfig, NoopInstallProgress, ProductInstaller};
+use oxidrive::installer::os_actions::{DebugBackend, system_default_backend};
 use oxidrive::remote::downloader::{ApplicationDownloader, DownloadConfiguration};
 use oxidrive::remote::products::ProductsClient;
 use std::fs;
 use tokio::runtime::Runtime;
-use oxidrive::installer::install::{InstallConfig, NoopInstallProgress, ProductInstaller};
-use oxidrive::installer::os_actions::{system_default_backend, DebugBackend};
 
 async fn install_routine(cmd: &InstallCommand) -> anyhow::Result<()> {
     let product_sap = cmd.product.to_sap();
@@ -99,6 +99,15 @@ async fn install_routine(cmd: &InstallCommand) -> anyhow::Result<()> {
         let mut dl_cfg = DownloadConfiguration::default();
         dl_cfg.locale = cmd.language.clone();
 
+        if cmd.no_bloatware {
+            let exclude = vec!["COSY".to_string(), "CCXP".to_string()];
+
+            // Add SAP codes to the exclusion list in the download cfg,
+            // also removing them from the install list.
+            dl_cfg.exclude_dependencies = Some(exclude.clone());
+            to_install.retain_mut(|d| !exclude.contains(&d.sap_code));
+        }
+
         let base_dir = cmd
             .out_dir
             .clone()
@@ -121,17 +130,16 @@ async fn install_routine(cmd: &InstallCommand) -> anyhow::Result<()> {
 
         to_install.push(product);
 
-        let backend =
-            if cmd.dry_run {
-                Box::new(DebugBackend {})
-            } else {
-                system_default_backend()
-            };
+        let backend = if cmd.dry_run {
+            Box::new(DebugBackend {})
+        } else {
+            system_default_backend()
+        };
 
         let progress = NoopInstallProgress {};
 
         let install_cfg = InstallConfig {
-            language: cmd.language.clone()
+            language: cmd.language.clone(),
         };
 
         let installer = ProductInstaller::new_with_apps(
@@ -139,13 +147,15 @@ async fn install_routine(cmd: &InstallCommand) -> anyhow::Result<()> {
             base_dir,
             install_cfg,
             to_install,
-            backend
+            backend,
         );
 
-        installer.prewarm()
+        installer
+            .prewarm()
             .map_err(|e| anyhow!("Installer prewarm error: {e}"))?;
 
-        installer.run(progress)
+        installer
+            .run(progress)
             .map_err(|e| anyhow!("Install error: {e}"))?;
 
         Ok(())
