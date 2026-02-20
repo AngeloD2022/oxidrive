@@ -176,7 +176,7 @@ impl TokenExpander {
             "UserDesktop" => FOLDERID_Desktop,
             "SharedDesktop" => FOLDERID_Desktop,
             _ => {
-                warn!("Unhandled path macro: {}", value);
+                eprintln!("Unhandled path macro: {}", value);
                 return None;
             }
         };

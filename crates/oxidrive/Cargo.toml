@@ -34,4 +34,5 @@ core-foundation-sys = "0.8.7"
 libc = "0.2.177"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.62.2", features = ["Win32_UI_Shell", "Win32_System_Com"] }
+windows = { version = "0.62.2", features = ["Win32_UI_Shell", "Win32_System_Com", "Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_Storage_FileSystem"] }
+winreg = "0.55.0"
