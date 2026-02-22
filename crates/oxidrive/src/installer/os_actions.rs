@@ -422,7 +422,10 @@ mod windows {
         }
 
         fn create_registry(&self, registry: &RegistryCommand) -> BackendResult<()> {
+            println!("{registry:?}");
+
             let path = registry.path.replace('/', "\\");
+
             let (root, subkey_path) = if let Some(rest) = path.strip_prefix("HKCU\\") {
                 (HKEY_CURRENT_USER, rest)
             } else if let Some(rest) = path.strip_prefix("HKLM\\") {
