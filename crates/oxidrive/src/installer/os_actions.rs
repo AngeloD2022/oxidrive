@@ -332,7 +332,7 @@ mod windows {
     use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CoUninitialize, IPersistFile, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED};
     use windows::Win32::UI::Shell::{IShellLinkW, ShellLink};
     use windows::Win32::UI::WindowsAndMessaging::{LoadImageW, IMAGE_ICON, LR_DEFAULTSIZE, LR_LOADFROMFILE};
-    use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
+    use winreg::enums::{HKEY_CLASSES_ROOT, HKEY_CURRENT_CONFIG, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, HKEY_USERS};
     use winreg::RegKey;
 
     // Yeah yeah, I get it. I'll figure out a proper placement for this
@@ -423,19 +423,26 @@ mod windows {
 
         fn create_registry(&self, registry: &RegistryCommand) -> BackendResult<()> {
             println!("{registry:?}");
-
             let path = registry.path.replace('/', "\\");
+            let root_part = path.split_once('\\')
+                .map(|x| x.0)
+                .unwrap_or(&path);
 
-            let (root, subkey_path) = if let Some(rest) = path.strip_prefix("HKCU\\") {
-                (HKEY_CURRENT_USER, rest)
-            } else if let Some(rest) = path.strip_prefix("HKLM\\") {
-                (HKEY_LOCAL_MACHINE, rest)
-            } else {
-                return Err(OperationError(format!(
-                    "Unsupported registry root in path: {} (use HKCU or HKLM)",
-                    registry.path
-                )));
+            let root = match root_part {
+                "HKEY_CLASSES_ROOT" => HKEY_CLASSES_ROOT,
+                "HKEY_CURRENT_USER" => HKEY_CURRENT_USER,
+                "HKEY_LOCAL_MACHINE" => HKEY_LOCAL_MACHINE,
+                "HKEY_USERS" => HKEY_USERS,
+                "HKEY_CURRENT_CONFIG" => HKEY_CURRENT_CONFIG,
+                _ => {
+                    return Err(OperationError(format!(
+                        "Unknown registry root in path: {path}"
+                    )));
+                }
             };
+            let subkey_path = path
+                .strip_prefix(&format!("{root_part}\\"))
+                .unwrap_or(&path);
 
             let root = RegKey::predef(root);
 
