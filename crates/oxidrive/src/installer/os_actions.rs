@@ -198,7 +198,7 @@ mod macos {
     use core_foundation::string::CFString;
     use core_foundation::url::CFURL;
     use core_foundation_sys::base::kCFAllocatorDefault;
-    use core_foundation_sys::url::{CFURLCreateWithFileSystemPath, kCFURLPOSIXPathStyle};
+    use core_foundation_sys::url::{kCFURLPOSIXPathStyle, CFURLCreateWithFileSystemPath};
     use objc2::AllocAnyThread;
     use objc2_app_kit::{NSImage, NSWorkspace, NSWorkspaceIconCreationOptions};
     use objc2_foundation::NSString;
@@ -330,8 +330,8 @@ fn path_to_pcwstr(path: &Path) -> Vec<u16> {
 
 #[cfg(target_os = "windows")]
 mod windows {
-    use crate::installer::os_actions::{path_to_pcwstr, BackendError, BackendResult, InstallActionBackend};
     use crate::installer::os_actions::BackendError::{OperationError, UnsupportedAction};
+    use crate::installer::os_actions::{path_to_pcwstr, BackendResult, InstallActionBackend};
     use crate::installer::pim::RegistryCommand;
     use std::fs;
     use std::path::{Path, PathBuf};
@@ -340,6 +340,8 @@ mod windows {
     use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CoUninitialize, IPersistFile, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED};
     use windows::Win32::UI::Shell::{IShellLinkW, ShellLink};
     use windows::Win32::UI::WindowsAndMessaging::{LoadImageW, IMAGE_ICON, LR_DEFAULTSIZE, LR_LOADFROMFILE};
+    use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
+    use winreg::RegKey;
 
     pub struct WindowsBackend;
 
@@ -419,9 +421,6 @@ mod windows {
         }
 
         fn create_registry(&self, registry: &RegistryCommand) -> BackendResult<()> {
-            use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, RegType};
-            use winreg::RegKey;
-
             let path = registry.path.replace('/', "\\");
             let (root, subkey_path) = if let Some(rest) = path.strip_prefix("HKCU\\") {
                 (HKEY_CURRENT_USER, rest)
