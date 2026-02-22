@@ -432,14 +432,14 @@ impl ProductInstaller {
 
 enum HandledPath {
     Real(String),
-    Temporary(TempDir),
+    Temporary(TempDir, String),
 }
 
 impl HandledPath {
     pub fn path_string(&self) -> String {
         match self {
             HandledPath::Real(v) => v.to_string(),
-            HandledPath::Temporary(v) => v.path().to_string_lossy().to_string(),
+            HandledPath::Temporary(v, remainder) => v.path().join(remainder).to_string_lossy().to_string(),
         }
     }
 }
@@ -467,6 +467,11 @@ fn handle_path(
         let p = expand_token(token_expander, path)?;
         let p = p.strip_suffix('/').unwrap_or(&p);
 
+        let staging_dir = interface
+            .staging_directory()
+            .unwrap_or("/")
+            .to_string();
+
         let glob = if interface.is_directory(&p) {
             format!("{}/**/*", p)
         } else {
@@ -474,7 +479,9 @@ fn handle_path(
         };
 
         let temp = extract_temporary(interface, backend, &glob)?;
-        Ok(HandledPath::Temporary(temp))
+        let remainder = p.strip_prefix(&staging_dir).unwrap_or(p);
+
+        Ok(HandledPath::Temporary(temp, remainder.to_string()))
     } else {
         let p = expand_token(token_expander, path)?;
         Ok(HandledPath::Real(p))
@@ -779,7 +786,7 @@ mod tests {
     fn test_archive_intf() {
         // let f = File::open("/Users/angelodeluca/RustroverProjects/oxidrive/dl_test/COSY/CoreSync-mul.zip").unwrap();
         let f = File::open(
-            "/Users/angelodeluca/RustroverProjects/oxidrive/dl_test/PHSP/AdobePhotoshop27-Core.zip",
+            "/Users/angelodeluca/Desktop/guest_vm_shared/CameraRawRIBSCoExistPackage.zip",
         )
         .unwrap();
         // let f = File::open("/Users/angelodeluca/RustroverProjects/oxidrive/dl_test/CORG/AdobeColorCommonSetRGB_1_0-mul.zip").unwrap();
@@ -788,7 +795,7 @@ mod tests {
         let mut archive = ZipArchive::new(f).unwrap();
 
         let mut interface =
-            PackageInterface::new(&mut archive, f_clone, &CompressionType::ZipLzma2);
+            PackageInterface::new(&mut archive, f_clone, &CompressionType::ZipDeflated);
 
         let _manifest = interface.read_pimx();
 
@@ -804,13 +811,28 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_pc() {
+        let plat = ProductPlatform::MacAarch64;
+        let mut client = ProductsClient::new(plat).await;
+
+        let mut client = client.unwrap();
+
+        let product_sap = "ACR";
+        let ch = client.get_reduced_channel("STM").unwrap();
+        let latest = ch.index.get_latest(product_sap, plat).unwrap();
+
+        let guid = latest.build_guid.unwrap().to_owned();
+        let application = client.get_application(&guid).await.unwrap();
+    }
+
+    #[tokio::test]
     async fn test_installer() {
         let plat = ProductPlatform::MacAarch64;
         let mut client = ProductsClient::new(plat).await;
 
         let mut client = client.unwrap();
 
-        let product_sap = "PHSP";
+        let product_sap = "AEFT";
         let ch = client.get_reduced_channel("CCM").unwrap();
         let latest = ch.index.get_latest(product_sap, MacUniversal).unwrap();
 
@@ -841,5 +863,6 @@ mod tests {
         );
         installer.prewarm().unwrap();
         installer.run(progress).unwrap();
+
     }
 }
