@@ -439,7 +439,10 @@ impl HandledPath {
     pub fn path_string(&self) -> String {
         match self {
             HandledPath::Real(v) => v.to_string(),
-            HandledPath::Temporary(v, remainder) => v.path().join(remainder).to_string_lossy().to_string(),
+            HandledPath::Temporary(v, remainder) => {
+                let remainder = remainder.trim_start_matches('/').trim_start_matches('\\');
+                v.path().join(remainder).to_string_lossy().to_string()
+            },
         }
     }
 }
