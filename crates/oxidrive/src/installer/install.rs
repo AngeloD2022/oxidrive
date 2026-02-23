@@ -475,6 +475,7 @@ fn handle_path(
     if path.starts_with("[StagingFolder]") {
         let p = expand_token(token_expander, path)?;
         let p = p.strip_suffix('/').unwrap_or(&p);
+        let p = p.strip_prefix('/').unwrap_or(&p);
 
         // let staging_dir = interface
         //     .staging_directory()
