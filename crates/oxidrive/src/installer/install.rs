@@ -476,6 +476,11 @@ fn handle_path(
         let p = expand_token(token_expander, path)?;
         let p = p.strip_suffix('/').unwrap_or(&p);
 
+        // let staging_dir = interface
+        //     .staging_directory()
+        //     .unwrap_or("/")
+        //     .to_string();
+
         let glob = if interface.is_directory(&p) {
             format!("{}/**/*", p)
         } else {
@@ -483,11 +488,6 @@ fn handle_path(
         };
         println!("TEXTRACT_GLOB: {glob}");
         let temp = extract_temporary(interface, backend, &glob)?;
-
-        // let staging_dir = interface
-        //     .staging_directory()
-        //     .unwrap_or("/")
-        //     .to_string();
 
         let path = temp.path().join(p);
         Ok(HandledPath::Temporary(temp, path))
@@ -500,7 +500,7 @@ fn handle_path(
 fn extract_temporary(
     interface: &mut PackageInterface,
     backend: &dyn InstallActionBackend,
-    glob: &str,
+    staging_glob: &str,
 ) -> InstallerResult<TempDir> {
     let temp = tempdir()?;
     let path = temp.path();
@@ -508,8 +508,9 @@ fn extract_temporary(
     // precondition: glob always begins with the staging directory.
     let staging = interface.staging_directory().unwrap().to_string();
 
+    let glob = Path::new(&staging).join(&staging_glob).to_string_lossy().to_string();
     let sources = interface
-        .glob_match(glob)
+        .glob_match(&glob)
         .iter()
         .map(|s| s.to_string())
         .collect::<Vec<_>>();
@@ -791,6 +792,7 @@ mod tests {
     use std::path::PathBuf;
     use std::str::FromStr;
     use zip::ZipArchive;
+    use crate::installer::inline_tokens::TokenExpander;
 
     #[test]
     fn test_archive_intf() {
@@ -806,6 +808,7 @@ mod tests {
 
         let mut interface =
             PackageInterface::new(&mut archive, f_clone, &CompressionType::ZipDeflated);
+
 
         let _stagedir = interface.staging_directory();
 
