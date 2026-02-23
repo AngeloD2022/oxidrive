@@ -16,6 +16,7 @@ use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::{fs, io};
+use std::ops::Deref;
 use tempfile::{TempDir, tempdir};
 use thiserror::Error;
 use zip::ZipArchive;
@@ -400,7 +401,8 @@ impl ProductInstaller {
                                 self.backend.as_ref(),
                                 &c.path,
                             )?;
-                            let path = _p.path_string();
+
+                            let path = _p.path();
 
                             let args = c.arguments.clone().map(|args| {
                                 args.into_iter()
@@ -431,18 +433,22 @@ impl ProductInstaller {
 }
 
 enum HandledPath {
-    Real(String),
-    Temporary(TempDir, String),
+    Real(PathBuf),
+    Temporary(TempDir, PathBuf),
 }
 
 impl HandledPath {
     pub fn path_string(&self) -> String {
         match self {
-            HandledPath::Real(v) => v.to_string(),
-            HandledPath::Temporary(v, remainder) => {
-                let remainder = remainder.trim_start_matches('/').trim_start_matches('\\');
-                v.path().join(remainder).to_string_lossy().to_string()
-            },
+            HandledPath::Real(v) => v.to_string_lossy().to_string(),
+            HandledPath::Temporary(_, v) => v.to_string_lossy().to_string(),
+        }
+    }
+
+    pub fn path(&self) -> &Path {
+        match self {
+            HandledPath::Real(v) => v.as_ref(),
+            HandledPath::Temporary(_, v) => v.as_ref(),
         }
     }
 }
@@ -470,11 +476,6 @@ fn handle_path(
         let p = expand_token(token_expander, path)?;
         let p = p.strip_suffix('/').unwrap_or(&p);
 
-        let staging_dir = interface
-            .staging_directory()
-            .unwrap_or("/")
-            .to_string();
-
         let glob = if interface.is_directory(&p) {
             format!("{}/**/*", p)
         } else {
@@ -482,12 +483,17 @@ fn handle_path(
         };
 
         let temp = extract_temporary(interface, backend, &glob)?;
-        let remainder = p.strip_prefix(&staging_dir).unwrap_or(p);
 
-        Ok(HandledPath::Temporary(temp, remainder.to_string()))
+        let staging_dir = interface
+            .staging_directory()
+            .unwrap_or("/")
+            .to_string();
+
+        let path = temp.path().join(diff_paths(&p, &staging_dir).unwrap());
+        Ok(HandledPath::Temporary(temp, path))
     } else {
         let p = expand_token(token_expander, path)?;
-        Ok(HandledPath::Real(p))
+        Ok(HandledPath::Real(PathBuf::from(p)))
     }
 }
 
@@ -510,6 +516,7 @@ fn extract_temporary(
 
     for file in &sources {
         let host_path = path.join(diff_paths(file, &staging).unwrap());
+
         let extracted = interface.read_file(file)?;
         match extracted {
             ExtractedEntity::File(content, mode) => {
@@ -789,7 +796,7 @@ mod tests {
     fn test_archive_intf() {
         // let f = File::open("/Users/angelodeluca/RustroverProjects/oxidrive/dl_test/COSY/CoreSync-mul.zip").unwrap();
         let f = File::open(
-            "/Users/angelodeluca/Desktop/guest_vm_shared/CameraRawRIBSCoExistPackage.zip",
+            "/Users/angelodeluca/RustroverProjects/oxidrive/VCRedist14-64.zip",
         )
         .unwrap();
         // let f = File::open("/Users/angelodeluca/RustroverProjects/oxidrive/dl_test/CORG/AdobeColorCommonSetRGB_1_0-mul.zip").unwrap();
@@ -803,7 +810,7 @@ mod tests {
         let _manifest = interface.read_pimx();
 
         for f in
-            interface.glob_match("1/Application/Adobe Photoshop 2026.app/Contents/Frameworks/**")
+            interface.glob_match("1/")
         {
             println!("{}", f);
         }
