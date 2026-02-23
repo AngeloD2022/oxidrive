@@ -16,6 +16,7 @@ use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::{fs, io};
+use std::ops::Deref;
 use tempfile::{TempDir, tempdir};
 use thiserror::Error;
 use zip::ZipArchive;
@@ -400,7 +401,8 @@ impl ProductInstaller {
                                 self.backend.as_ref(),
                                 &c.path,
                             )?;
-                            let path = _p.path_string();
+
+                            let path = _p.path();
 
                             let args = c.arguments.clone().map(|args| {
                                 args.into_iter()
@@ -431,15 +433,22 @@ impl ProductInstaller {
 }
 
 enum HandledPath {
-    Real(String),
-    Temporary(TempDir),
+    Real(PathBuf),
+    Temporary(TempDir, PathBuf),
 }
 
 impl HandledPath {
     pub fn path_string(&self) -> String {
         match self {
-            HandledPath::Real(v) => v.to_string(),
-            HandledPath::Temporary(v) => v.path().to_string_lossy().to_string(),
+            HandledPath::Real(v) => v.to_string_lossy().to_string(),
+            HandledPath::Temporary(_, v) => v.to_string_lossy().to_string(),
+        }
+    }
+
+    pub fn path(&self) -> &Path {
+        match self {
+            HandledPath::Real(v) => v.as_ref(),
+            HandledPath::Temporary(_, v) => v.as_ref(),
         }
     }
 }
@@ -466,25 +475,33 @@ fn handle_path(
     if path.starts_with("[StagingFolder]") {
         let p = expand_token(token_expander, path)?;
         let p = p.strip_suffix('/').unwrap_or(&p);
+        let p = p.strip_prefix('/').unwrap_or(&p);
+
+        // let staging_dir = interface
+        //     .staging_directory()
+        //     .unwrap_or("/")
+        //     .to_string();
 
         let glob = if interface.is_directory(&p) {
             format!("{}/**/*", p)
         } else {
             p.to_string()
         };
-
+        println!("TEXTRACT_GLOB: {glob}");
         let temp = extract_temporary(interface, backend, &glob)?;
-        Ok(HandledPath::Temporary(temp))
+
+        let path = temp.path().join(p);
+        Ok(HandledPath::Temporary(temp, path))
     } else {
         let p = expand_token(token_expander, path)?;
-        Ok(HandledPath::Real(p))
+        Ok(HandledPath::Real(PathBuf::from(p)))
     }
 }
 
 fn extract_temporary(
     interface: &mut PackageInterface,
     backend: &dyn InstallActionBackend,
-    glob: &str,
+    staging_glob: &str,
 ) -> InstallerResult<TempDir> {
     let temp = tempdir()?;
     let path = temp.path();
@@ -492,14 +509,16 @@ fn extract_temporary(
     // precondition: glob always begins with the staging directory.
     let staging = interface.staging_directory().unwrap().to_string();
 
+    let glob = Path::new(&staging).join(&staging_glob).to_string_lossy().to_string();
     let sources = interface
-        .glob_match(glob)
+        .glob_match(&glob)
         .iter()
         .map(|s| s.to_string())
         .collect::<Vec<_>>();
 
     for file in &sources {
         let host_path = path.join(diff_paths(file, &staging).unwrap());
+
         let extracted = interface.read_file(file)?;
         match extracted {
             ExtractedEntity::File(content, mode) => {
@@ -774,12 +793,13 @@ mod tests {
     use std::path::PathBuf;
     use std::str::FromStr;
     use zip::ZipArchive;
+    use crate::installer::inline_tokens::TokenExpander;
 
     #[test]
     fn test_archive_intf() {
         // let f = File::open("/Users/angelodeluca/RustroverProjects/oxidrive/dl_test/COSY/CoreSync-mul.zip").unwrap();
         let f = File::open(
-            "/Users/angelodeluca/RustroverProjects/oxidrive/dl_test/PHSP/AdobePhotoshop27-Core.zip",
+            "/Users/angelodeluca/RustroverProjects/oxidrive/VCRedist14-64.zip",
         )
         .unwrap();
         // let f = File::open("/Users/angelodeluca/RustroverProjects/oxidrive/dl_test/CORG/AdobeColorCommonSetRGB_1_0-mul.zip").unwrap();
@@ -788,12 +808,15 @@ mod tests {
         let mut archive = ZipArchive::new(f).unwrap();
 
         let mut interface =
-            PackageInterface::new(&mut archive, f_clone, &CompressionType::ZipLzma2);
+            PackageInterface::new(&mut archive, f_clone, &CompressionType::ZipDeflated);
+
+
+        let _stagedir = interface.staging_directory();
 
         let _manifest = interface.read_pimx();
 
         for f in
-            interface.glob_match("1/Application/Adobe Photoshop 2026.app/Contents/Frameworks/**")
+            interface.glob_match("1/")
         {
             println!("{}", f);
         }
@@ -804,13 +827,28 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_pc() {
+        let plat = ProductPlatform::MacAarch64;
+        let mut client = ProductsClient::new(plat).await;
+
+        let mut client = client.unwrap();
+
+        let product_sap = "ACR";
+        let ch = client.get_reduced_channel("STM").unwrap();
+        let latest = ch.index.get_latest(product_sap, plat).unwrap();
+
+        let guid = latest.build_guid.unwrap().to_owned();
+        let application = client.get_application(&guid).await.unwrap();
+    }
+
+    #[tokio::test]
     async fn test_installer() {
         let plat = ProductPlatform::MacAarch64;
         let mut client = ProductsClient::new(plat).await;
 
         let mut client = client.unwrap();
 
-        let product_sap = "PHSP";
+        let product_sap = "AEFT";
         let ch = client.get_reduced_channel("CCM").unwrap();
         let latest = ch.index.get_latest(product_sap, MacUniversal).unwrap();
 
@@ -841,5 +879,6 @@ mod tests {
         );
         installer.prewarm().unwrap();
         installer.run(progress).unwrap();
+
     }
 }

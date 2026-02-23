@@ -319,31 +319,278 @@ mod macos {
 
 #[cfg(target_os = "windows")]
 mod windows {
+    use crate::installer::os_actions::BackendError::{OperationError, UnsupportedAction};
     use crate::installer::os_actions::{BackendResult, InstallActionBackend};
     use crate::installer::pim::RegistryCommand;
-    use std::path::Path;
+    use std::fs;
+    use std::os::windows::ffi::OsStrExt;
+    use std::path::{Path, PathBuf};
+    use windows::Win32::Storage::FileSystem::{
+        FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_READONLY, FILE_ATTRIBUTE_SYSTEM, GetFileAttributesW,
+        INVALID_FILE_ATTRIBUTES, SetFileAttributesW,
+    };
+    use windows::Win32::System::Com::{
+        CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED, CoCreateInstance, CoInitializeEx,
+        CoUninitialize, IPersistFile,
+    };
+    use windows::Win32::UI::Shell::{IShellLinkW, ShellLink};
+    use windows::Win32::UI::WindowsAndMessaging::{
+        IMAGE_ICON, LR_DEFAULTSIZE, LR_LOADFROMFILE, LoadImageW,
+    };
+    use windows::core::{Interface, PCWSTR};
+    use winreg::RegKey;
+    use winreg::enums::{
+        HKEY_CLASSES_ROOT, HKEY_CURRENT_CONFIG, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, HKEY_USERS,
+    };
+
+    // Yeah yeah, I get it. I'll figure out a proper placement for this
+    fn path_to_pcwstr(path: &Path) -> Vec<u16> {
+        // NUL-terminated UTF-16 for Win32 APIs
+        path.as_os_str()
+            .encode_wide()
+            .chain(std::iter::once(0))
+            .collect()
+    }
 
     pub struct WindowsBackend;
 
     impl InstallActionBackend for WindowsBackend {
         fn create_shortcut(&self, at_path: &Path, to_path: &Path) -> BackendResult<()> {
-            todo!()
+            println!(
+                "Creating shortcut at {}, to {}",
+                at_path.display(),
+                to_path.display()
+            );
+
+            if let Some(parent) = at_path.parent() {
+                if !parent.exists() {
+                    fs::create_dir_all(parent)?;
+                }
+            }
+
+            let link_path: PathBuf = match at_path.extension().and_then(|e| e.to_str()) {
+                Some(ext) if ext.eq_ignore_ascii_case("lnk") => at_path.to_path_buf(),
+                _ => at_path.with_extension("lnk"),
+            };
+
+            unsafe {
+                CoInitializeEx(None, COINIT_APARTMENTTHREADED)
+                    .ok()
+                    .map_err(|e| {
+                        OperationError(format!("COM init (CoInitializeEx) failed: {}", e))
+                    })?;
+            }
+            struct ComGuard;
+            impl Drop for ComGuard {
+                fn drop(&mut self) {
+                    unsafe { CoUninitialize() }
+                }
+            }
+            let _guard = ComGuard;
+
+            let shell_link: IShellLinkW = unsafe {
+                CoCreateInstance(&ShellLink, None, CLSCTX_INPROC_SERVER).map_err(|e| {
+                    OperationError(format!("CoCreateInstance(ShellLink) failed: {}", e))
+                })?
+            };
+
+            let target_w = path_to_pcwstr(to_path);
+            unsafe {
+                shell_link
+                    .SetPath(PCWSTR(target_w.as_ptr()))
+                    .map_err(|e| OperationError(format!("IShellLinkW::SetPath failed: {}", e)))?;
+            }
+
+            if let Some(parent) = to_path.parent() {
+                let parent_w = path_to_pcwstr(parent);
+                unsafe {
+                    shell_link
+                        .SetWorkingDirectory(PCWSTR(parent_w.as_ptr()))
+                        .map_err(|e| {
+                            OperationError(format!(
+                                "IShellLinkW::SetWorkingDirectory failed: {}",
+                                e
+                            ))
+                        })?;
+                }
+            }
+
+            let persist: IPersistFile = shell_link.cast().map_err(|e| {
+                OperationError(format!("Failed to cast IShellLinkW -> IPersistFile: {}", e))
+            })?;
+
+            let link_w = path_to_pcwstr(&link_path);
+            unsafe {
+                persist.Save(PCWSTR(link_w.as_ptr()), true).map_err(|e| {
+                    OperationError(format!(
+                        "IPersistFile::Save failed for {}: {}",
+                        link_path.display(),
+                        e
+                    ))
+                })?;
+            }
+
+            Ok(())
         }
 
         fn create_registry(&self, registry: &RegistryCommand) -> BackendResult<()> {
-            todo!()
+            println!("{registry:?}");
+            let path = registry.path.replace('/', "\\");
+            let root_part = path.split_once('\\').map(|x| x.0).unwrap_or(&path);
+
+            let root = match root_part {
+                "HKEY_CLASSES_ROOT" => HKEY_CLASSES_ROOT,
+                "HKEY_CURRENT_USER" => HKEY_CURRENT_USER,
+                "HKEY_LOCAL_MACHINE" => HKEY_LOCAL_MACHINE,
+                "HKEY_USERS" => HKEY_USERS,
+                "HKEY_CURRENT_CONFIG" => HKEY_CURRENT_CONFIG,
+                _ => {
+                    return Err(OperationError(format!(
+                        "Unknown registry root in path: {path}"
+                    )));
+                }
+            };
+            let subkey_path = path
+                .strip_prefix(&format!("{root_part}\\"))
+                .unwrap_or(&path);
+
+            let root = RegKey::predef(root);
+
+            if registry.is_recursive_delete {
+                root.delete_subkey_all(subkey_path).map_err(|e| {
+                    OperationError(format!(
+                        "Failed to delete registry tree '{}': {}",
+                        subkey_path, e
+                    ))
+                })?;
+                return Ok(());
+            }
+
+            let (key, _disp) = root.create_subkey(subkey_path).map_err(|e| {
+                OperationError(format!(
+                    "Failed to create/open key '{}': {}",
+                    subkey_path, e
+                ))
+            })?;
+
+            if let (Some(name), Some(value)) = (&registry.name, &registry.value) {
+                let type_str = registry.type_.as_deref().unwrap_or("REG_SZ");
+                match type_str.to_ascii_uppercase().as_str() {
+                    "REG_DWORD" => {
+                        let parsed: u32 = if value.starts_with("0x") || value.starts_with("0X") {
+                            u32::from_str_radix(&value[2..], 16).map_err(|e| {
+                                OperationError(format!(
+                                    "Invalid REG_DWORD value '{}': {}",
+                                    value, e
+                                ))
+                            })?
+                        } else {
+                            value.parse::<u32>().map_err(|e| {
+                                OperationError(format!(
+                                    "Invalid REG_DWORD value '{}': {}",
+                                    value, e
+                                ))
+                            })?
+                        };
+                        key.set_value(name, &parsed).map_err(|e| {
+                            OperationError(format!("Failed to set REG_DWORD '{}': {}", name, e))
+                        })?;
+                    }
+                    _ => {
+                        key.set_value(name, &value.as_str()).map_err(|e| {
+                            OperationError(format!("Failed to set REG_SZ '{}': {}", name, e))
+                        })?;
+                    }
+                }
+            }
+
+            Ok(())
         }
 
         fn apply_folder_icon(&self, folder_path: &Path, icon_path: &Path) -> BackendResult<()> {
-            todo!()
+            println!(
+                "Applying icon '{}' to folder '{}'",
+                icon_path.display(),
+                folder_path.display()
+            );
+
+            if !folder_path.exists() {
+                fs::create_dir_all(folder_path)?;
+            }
+
+            let icon_w = path_to_pcwstr(icon_path);
+            unsafe {
+                LoadImageW(
+                    None,
+                    PCWSTR(icon_w.as_ptr()),
+                    IMAGE_ICON,
+                    0,
+                    0,
+                    LR_LOADFROMFILE | LR_DEFAULTSIZE,
+                )
+                .map_err(|e| {
+                    OperationError(format!("Couldn't load icon {}: {}", icon_path.display(), e))
+                })?;
+            }
+
+            let ini_path = folder_path.join("desktop.ini");
+            let ini_content = format!(
+                "[.ShellClassInfo]\r\nIconResource={},0\r\n[ViewState]\r\nMode=\r\nVid=\r\nFolderType=Generic\r\n",
+                icon_path.display()
+            );
+            fs::write(&ini_path, ini_content.as_bytes())?;
+
+            // Set attributes: folder must be system; desktop.ini hidden+system+readonly
+            unsafe {
+                let folder_w = path_to_pcwstr(folder_path);
+                let mut attrs = GetFileAttributesW(PCWSTR(folder_w.as_ptr()));
+                let mut attrs_val: u32 = if attrs == INVALID_FILE_ATTRIBUTES {
+                    0
+                } else {
+                    attrs
+                };
+                attrs_val |= FILE_ATTRIBUTE_SYSTEM.0;
+                SetFileAttributesW(
+                    PCWSTR(folder_w.as_ptr()),
+                    windows::Win32::Storage::FileSystem::FILE_FLAGS_AND_ATTRIBUTES(attrs_val),
+                )
+                .map_err(|e| OperationError(format!("SetFileAttributesW(folder) failed: {}", e)))?;
+
+                let ini_w = path_to_pcwstr(&ini_path);
+                let mut ini_attrs = GetFileAttributesW(PCWSTR(ini_w.as_ptr()));
+                let mut ini_attrs_val: u32 = if ini_attrs == INVALID_FILE_ATTRIBUTES {
+                    0
+                } else {
+                    ini_attrs
+                };
+                ini_attrs_val |=
+                    FILE_ATTRIBUTE_HIDDEN.0 | FILE_ATTRIBUTE_SYSTEM.0 | FILE_ATTRIBUTE_READONLY.0;
+                SetFileAttributesW(
+                    PCWSTR(ini_w.as_ptr()),
+                    windows::Win32::Storage::FileSystem::FILE_FLAGS_AND_ATTRIBUTES(ini_attrs_val),
+                )
+                .map_err(|e| {
+                    OperationError(format!("SetFileAttributesW(desktop.ini) failed: {}", e))
+                })?;
+            }
+
+            Ok(())
         }
 
-        fn register_application(&self, path: &Path) -> BackendResult<()> {
-            todo!()
+        fn register_application(&self, _path: &Path) -> BackendResult<()> {
+            // No-op on Windows for now, registration typically uses registry/protocol handlers
+            Ok(())
         }
 
-        fn set_permission(&self, path: &str, value: &str, user: Option<&str>) -> BackendResult<()> {
-            todo!()
+        fn set_permission(
+            &self,
+            _path: &str,
+            _value: &str,
+            _user: Option<&str>,
+        ) -> BackendResult<()> {
+            Err(UnsupportedAction(
+                "Setting permissions is not implemented for Windows backend".to_string(),
+            ))
         }
     }
 }
