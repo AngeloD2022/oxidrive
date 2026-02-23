@@ -481,15 +481,15 @@ fn handle_path(
         } else {
             p.to_string()
         };
-
+        println!("TEXTRACT_GLOB: {glob}");
         let temp = extract_temporary(interface, backend, &glob)?;
 
-        let staging_dir = interface
-            .staging_directory()
-            .unwrap_or("/")
-            .to_string();
+        // let staging_dir = interface
+        //     .staging_directory()
+        //     .unwrap_or("/")
+        //     .to_string();
 
-        let path = temp.path().join(diff_paths(&p, &staging_dir).unwrap());
+        let path = temp.path().join(p);
         Ok(HandledPath::Temporary(temp, path))
     } else {
         let p = expand_token(token_expander, path)?;
@@ -806,6 +806,8 @@ mod tests {
 
         let mut interface =
             PackageInterface::new(&mut archive, f_clone, &CompressionType::ZipDeflated);
+
+        let _stagedir = interface.staging_directory();
 
         let _manifest = interface.read_pimx();
 
